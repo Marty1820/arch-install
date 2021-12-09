@@ -88,7 +88,7 @@ fi
 
 # Install essential packages
 echo "Instaling essential packages."
-pacstrap /mnt base linux-zen linux-firmware git man-db man-pages texinfo networkmanager sudo curl nano intel-ucode
+pacstrap /mnt base linux-zen linux-zen-headers linux-firmware networkmanager btrfs-progs git man-db man-pages texinfo sudo curl nano intel-ucode
 
 # Generate an fstab file
 echo "Generating fstab file."
