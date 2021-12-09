@@ -1,8 +1,10 @@
 # Marty's Computer Setup [Arch]
 An arch linux installation script for my personal use. Works on my Frame.Work Laptop!
 
-Script will make btrfs with swapfile on UEFI
-Setup for intel processor if running AMD change ucode in post_chroot
+Setup for Intel processor if running AMD change ucode in post_chroot
+Also if not on an NVME then need to remove the partition number in all the $DISK sections
+
+BTRFS with swapfile on UEFI and Intel chipset
 
 1. `pacman -Sy git`
 2. `git clone https://github.com/Marty1820/arch-install.git`
