@@ -12,7 +12,7 @@ sleep 1
 read -p "Swap file size in G > " SWAP_SIZE
 echo $SWAP_SIZE GB swap
 fdisk -l
-read -p "Type sdx/nvme0nx > " DISK
+read -p "Type nvme0n1 > " DISK
 echo "arch will be installed in $DISK"
 sleep 1
 
