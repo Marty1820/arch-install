@@ -69,6 +69,17 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@.snapshots /mnt/.snapshots
   mount /dev/${DISK}p1 /mnt/boot/efi
   
+  #Setting up SWAP
+  ((SWAP=$SWAP_SIZE*1024))
+  truncate -s 0 /mnt/swapfile
+  chattr +C /mnt/swapfile
+  btrfs property set /mnt/swapfile compression none
+  dd if=/dev/zero of=/swap/swapfile bs=1M count=$SWAP
+  chmod 600 /mnt/swapfile
+  lsattr /mnt/swapfile
+  mkswap /mnt/swapfile
+  swapon /mnt/swapfile
+  
   sleep 2
 else
   echo "This script only work for UEFI mode"
