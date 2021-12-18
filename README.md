@@ -1,4 +1,6 @@
 # Marty's Computer Setup [Arch]
+
+# CURRENTLY UNTESTED US AT YOUR OWN RISK!
 An arch linux installation script for my personal use. Works on my Frame.Work Laptop!
 
 UEFI, BTRFS with subvolumes for root, home, opt, tmp, var, swap, & snapshots. 
