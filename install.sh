@@ -1,19 +1,20 @@
 #!/bin/bash
 
-echo "This script will install arch linux."
-sleep 1
+echo "This script will install arch linux with BTRFS on UEFI systems with a swapfile on an NVME drive."
+sleep 3
 
 # Update the system clock
 timedatectl set-ntp true
 timedatectl status
-sleep 1
+echo "Is the 'NTP service: active'?"
+read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
 
 # Partition the disks
-read -p "Swap file size in G > " SWAP_SIZE
+read -p "Swap file size in GBs > " SWAP_SIZE
 echo $SWAP_SIZE GB swap
 fdisk -l
-read -p "Type nvme0n1 > " DISK
-echo "arch will be installed in $DISK"
+read -p "Drive name (ex. nvme0n1) > " DISK
+echo "arch will be installed on $DISK"
 sleep 1
 
 # Verify the boot mode
@@ -30,7 +31,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo 1 # Set type to EFI
   echo n # Add a new partition
   echo 2 # Partition number
-  echo   # First sector (Accept default: 1)
+  echo   # First sector (Accept default: varies)
    echo   # Last sector (Accept default: varies)
   echo w # Write changes
 ) | fdisk /dev/$DISK
@@ -42,29 +43,31 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mkfs.btrfs /dev/${DISK}p2
 
   fdisk -l
-  sleep 4
+  echo "Partitions look ok?"
+  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
   
   # Create btrfs volumes
-  echo "Creating btrfs volumes."
-  mount /dev/${DISK}3 /mnt
+  echo "Creating btrfs subvolumes."
+  mount /dev/${DISK}p2 /mnt
   btrfs subvolume create /mnt/@
   btrfs subvolume create /mnt/@home
   btrfs subvolume create /mnt/@var
-  btrfs subvolume create /mnt/@opt
-  btrfs subvolume create /mnt/@tmp
+  #btrfs subvolume create /mnt/@opt
+  #btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@swap
   btrfs subvolume create /mnt/@.snapshots
   umount /mnt
   
-  # Mount drives
+  # Mount / subvolume
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvolid=256,subvol=/@ /mnt
   cd /mnt
+  #Makes mount points
   mkdir -p {boot/efi,home,var,opt,tmp,swap,.snapshots}
   cd /
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@home /mnt/home
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@var /mnt/var
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@opt /mnt/opt
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
+  #mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@opt /mnt/opt
+  #mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@swap /mnt/swap
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@.snapshots /mnt/.snapshots
   mount /dev/${DISK}p1 /mnt/boot/efi
@@ -82,25 +85,26 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   
   sleep 2
 else
-  echo "This script only work for UEFI mode"
+  echo "Boot mode BIOS"
+  echo "Script not configured for BIOS...yet"
   exit 0
 fi
 
 # Install essential packages
-echo "Instaling essential packages."
+echo "Installing essential packages."
 pacstrap /mnt base linux-zen linux-zen-headers linux-firmware networkmanager btrfs-progs git man-db man-pages texinfo sudo curl nano intel-ucode
 
 # Generate an fstab file
 echo "Generating fstab file."
 genfstab -U /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab
-sleep 1
+sleep 2
 
 # Change root into the new system:
-echo "Change root into the new system."
+echo "Changing root into the new system."
 echo -e "#!/bin/bash" >> install2.sh
 echo -e "DISK=$DISK BOOT=$BOOT >> install2.sh
 cat post_chroot >> install2.sh
-cp install2.sh /mnt
+cp install2.sh /mnt/
 chmod +x /mnt/install2.sh
 arch-chroot /mnt ./install2.sh

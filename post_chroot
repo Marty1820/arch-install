@@ -12,8 +12,8 @@ sudo locale-gen
 
 sleep 2
 
-# Network configuration
-echo "Configuring network"
+# Hostname/Network configuration
+echo "Configuring hostname/network"
 read -p "Type Hostname > " HOSTNAME
 echo $HOSTNAME >> /etc/hostname
 
@@ -74,4 +74,4 @@ systemctl start NetworkManager.service
 
 exit
 umount -R /mnt
-echo "We are done. Reboot your computer."
+echo "We are done. Reboot your computer and remove installation media"
