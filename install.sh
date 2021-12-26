@@ -26,24 +26,25 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo n # Add a new partition
   echo 1 # Partition number
   echo   # First sector (Accept default: 1)
-  echo +512M # Last sector (Accept default: varies)
+  echo +512M # Last sector (adds 512M space for EFI)
   echo t # Changing partition type
   echo 1 # Set type to EFI
   echo n # Add a new partition
   echo 2 # Partition number
   echo   # First sector (Accept default: varies)
-   echo   # Last sector (Accept default: varies)
+  echo   # Last sector (Accept default: varies)
   echo w # Write changes
 ) | fdisk /dev/$DISK
   
   # Format the partitions
   echo "Formating partitions"
-  #if ${DISK} == nvme0n1
-  mkfs.fat -F32 /dev/${DISK}p1
-  mkfs.btrfs /dev/${DISK}p2
+  #if ${DISK} == nvme0n1; then
+  #  NVME == p
+  mkfs.fat -F32 -L BOOT /dev/${DISK}p1
+  mkfs.btrfs -L ROOT /dev/${DISK}p2
 
   fdisk -l
-  echo "Partitions look ok?"
+  echo "Do the partitions look ok?"
   read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
   
   # Create btrfs volumes
@@ -51,37 +52,35 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mount /dev/${DISK}p2 /mnt
   btrfs subvolume create /mnt/@
   btrfs subvolume create /mnt/@home
-  btrfs subvolume create /mnt/@var
-  #btrfs subvolume create /mnt/@opt
-  #btrfs subvolume create /mnt/@tmp
+  btrfs subvolume create /mnt/@log
+  btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@swap
-  btrfs subvolume create /mnt/@.snapshots
+  btrfs subvolume create /mnt/@snapshots
   umount /mnt
   
   # Mount / subvolume
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvolid=256,subvol=/@ /mnt
   cd /mnt
   #Makes mount points
-  mkdir -p {boot/efi,home,var,opt,tmp,swap,.snapshots}
+  mkdir -p {boot/efi,home,var/log,opt,tmp,swap,.snapshots}
   cd /
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@home /mnt/home
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@var /mnt/var
-  #mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@opt /mnt/opt
-  #mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
+  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@log /mnt/var/log
+  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@swap /mnt/swap
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@.snapshots /mnt/.snapshots
+  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@snapshots /mnt/.snapshots
   mount /dev/${DISK}p1 /mnt/boot/efi
   
   #Setting up SWAP
   ((SWAP=$SWAP_SIZE*1024))
-  truncate -s 0 /mnt/swapfile
-  chattr +C /mnt/swapfile
-  btrfs property set /mnt/swapfile compression none
-  dd if=/dev/zero of=/swap/swapfile bs=1M count=$SWAP
-  chmod 600 /mnt/swapfile
-  lsattr /mnt/swapfile
-  mkswap /mnt/swapfile
-  swapon /mnt/swapfile
+  truncate -s 0 /mnt/swap/swapfile
+  chattr +C /mnt/swap/swapfile
+  btrfs property set /mnt/swap/swapfile compression none
+  dd if=/dev/zero of=/swap/swapfile bs=1M count=$SWAP status=progress
+  chmod 600 /mnt/swap/swapfile
+  lsattr /mnt/swap/swapfile
+  mkswap /mnt/swap/swapfile
+  swapon /mnt/swap/swapfile
   
   sleep 2
 else
@@ -92,7 +91,7 @@ fi
 
 # Install essential packages
 echo "Installing essential packages."
-pacstrap /mnt base linux-zen linux-zen-headers linux-firmware networkmanager btrfs-progs git man-db man-pages texinfo sudo curl nano intel-ucode
+pacstrap /mnt base base-devel linux-zen linux-zen-headers linux-firmware NetworkManager intel-ucode btrfs-progs sudo
 
 # Generate an fstab file
 echo "Generating fstab file."

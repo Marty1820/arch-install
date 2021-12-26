@@ -62,15 +62,47 @@ done
 #echo -e "root    ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 # Instaling and configuring GRUB
-pacman -S grub grub-efi-x86_64 efibootmgr grub-btrfs
+pacman --needed -Sy grub grub-btrfs efibootmgr nano git fwupd sudo fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo
+
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
 grub-mkconfig -o /boot/grub/grub.cfg
 sleep 2
 
+# FAIL2BAN Setup
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+touch /var/log/auth.log
+tee -a /etc/fail2ban/jail.local > /dev/null <<EOT
+[ssh]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 6
+EOT
+
+# UFW Defaults
+ufw default deny incoming
+ufw default allow outgoing
+ufw enable
+
+# Proper trackpad clicking
+touch /etc/X11/xorg.conf.d/30-touchpad.conf
+tee -a /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
+Section "InputClass"
+    Identifier "PIXA3854:00 093A:0274 Touchpad"
+    Driver "libinput"
+    Option "Tapping" "on"
+    Option "ClickMethod" "clickfinger"
+EndSection
+EOT
+
 # Finishing
 systemctl enable NetworkManager.service
-systemctl start NetworkManager.service
+systemctl enable systemd-resolved.service
+systemctl enable tlp.service
+systemctl enabl lightdm.service
+systemctl enable fail2ban.service
 
 exit
 umount -R /mnt
