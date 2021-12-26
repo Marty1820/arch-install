@@ -66,6 +66,10 @@ pacman --needed -Sy grub grub-btrfs efibootmgr nano git fwupd sudo fail2ban ufw 
 
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
+# Need to edit some lines in grub/can be done afterwards too
+#GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=UUID=6be67022-0337-45df-8aab-97b51e67cf12 resume_offset=4461824"
+#change GRUB_TIMEOUT_STYLE=hidden
+
 grub-mkconfig -o /boot/grub/grub.cfg
 sleep 2
 
