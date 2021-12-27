@@ -55,7 +55,6 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   btrfs subvolume create /mnt/@log
   btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@swap
-  btrfs subvolume create /mnt/@snapshots
   umount /mnt
   
   # Mount / subvolume
@@ -68,7 +67,6 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@log /mnt/var/log
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
   mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@swap /mnt/swap
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@snapshots /mnt/.snapshots
   mount /dev/${DISK}p1 /mnt/boot/efi
   
   #Setting up SWAP
