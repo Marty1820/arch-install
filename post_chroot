@@ -67,7 +67,7 @@ done
 
 
 # Instaling and configuring packages & bootloader
-pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-gtk-greeter qtile alacritty grub grub-btrfs efibootmgr 
+pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-slick-greeter qtile alacritty grub grub-btrfs efibootmgr nm-connection-editor parted gparted wireguard-tools libfprint fprintd youtube-dl vivaldi vivaldi-ffmpeg-codecs bitwarden gedit gedit-plugins libreoffice-still virtualbox feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi gnu-free-fonts ttf-hack pcmanfm gvfs gvfs-smb cifs-utils xarchiver calibre cheese discord gimp deluge-gtk code scrot vlc btop pacman-contrib kdeconnect redshift acpi bluez bluez-utils blueman
 
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
@@ -116,12 +116,23 @@ Section "InputClass"
 EndSection
 EOT
 
+# PARU Setup
+sudo pacman -S --needed base-devel
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts
+
+# More Services
+
 # Finishing
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
 systemctl enable tlp.service
 systemctl enable lightdm.service
 systemctl enable fail2ban.service
+systemctl enable bluetooth.service
+systemctl enable cronie.service
 
 exit
 swapoff /mnt/swap/swapfile
