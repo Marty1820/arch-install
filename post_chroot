@@ -2,6 +2,7 @@
 echo "Setting timezone."
 ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
 hwclock --systohc
+
 sleep 2
 
 # Localization
@@ -20,16 +21,19 @@ echo $HOSTNAME >> /etc/hostname
 echo 127.0.0.1	localhost >> /etc/hosts 
 echo ::1		localhost >> /etc/hosts
 echo 127.0.1.1	$HOSTNAME.localdomain	$HOSTNAME >> /etc/hosts
+
 sleep 2
 
 # Creating a new initramfs
 echo "Creating a new initramfs."
 mkinitcpio -P
+
 sleep 2
 
 # Setting root password
 read -p "Type root passwd > " rootpwd
 echo -e "$rootpwd\n$rootpwd" | passwd
+
 sleep 2
 
 # Creating a user
@@ -51,7 +55,7 @@ Please Select:
 		useradd -m -g wheel $username
 		echo -e "$userpwd\n$userpwd" | passwd $username
 		# USE SED TO REPLACE LINE
-		echo -e "%wheel    ALL=(ALL) ALL" >> /etc/sudoers
+		echo -e "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 		sleep 2
 		;;
 	*)	echo "Invalid entry" >&2
@@ -59,10 +63,11 @@ Please Select:
 		;;
 	esac
 done
-#echo -e "root    ALL=(ALL:ALL) ALL" >> /etc/sudoers
+#echo -e "root ALL=(ALL:ALL) ALL" >> /etc/sudoers
+
 
 # Instaling and configuring GRUB
-pacman --needed -Sy grub grub-btrfs efibootmgr nano git fwupd sudo fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils
+pacman --needed -Sy grub grub-btrfs efibootmgr nano git fwupd sudo fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon
 
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
@@ -72,6 +77,14 @@ grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
 grub-mkconfig -o /boot/grub/grub.cfg
 sleep 2
+
+# Notifications Setup
+touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
+tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
+[D-BUS Service]
+Name=org.freedesktop.Notifications
+Exec=/usr/lib/notification-daemon-1.0/notification-daemon
+EOT
 
 # FAIL2BAN Setup
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
@@ -111,3 +124,4 @@ systemctl enable fail2ban.service
 exit
 umount -R /mnt
 echo "We are done. Reboot your computer and remove installation media"
+echo "Run part 3 in your home folder after login...coming soon"
