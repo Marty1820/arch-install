@@ -9,7 +9,7 @@ sleep 2
 echo "Setting localization"
 echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
 echo LANG=en_US.UTF-8 >> /etc/locale.conf
-sudo locale-gen
+locale-gen
 
 sleep 2
 
@@ -66,8 +66,8 @@ done
 #echo -e "root ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 
-# Instaling and configuring GRUB
-pacman --needed -Sy grub grub-btrfs efibootmgr nano git fwupd sudo fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon
+# Instaling and configuring packages & bootloader
+pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-gtk-greeter qtile alacritty grub grub-btrfs efibootmgr 
 
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
@@ -101,8 +101,10 @@ EOT
 # UFW Defaults
 ufw default deny incoming
 ufw default allow outgoing
-ufw enable
+#must be enable after reboot
+#ufw enable
 
+#HAVEN'T TESTED TRACKPAD
 # Proper trackpad clicking
 touch /etc/X11/xorg.conf.d/30-touchpad.conf
 tee -a /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
@@ -118,10 +120,11 @@ EOT
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
 systemctl enable tlp.service
-systemctl enabl lightdm.service
+systemctl enable lightdm.service
 systemctl enable fail2ban.service
 
 exit
+swapoff /mnt/swap/swapfile
 umount -R /mnt
 echo "We are done. Reboot your computer and remove installation media"
 echo "Run part 3 in your home folder after login...coming soon"

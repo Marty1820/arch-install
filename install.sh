@@ -59,22 +59,17 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo "Are all subvolumes shown?"
   read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
   umount /mnt
-  
-  
-  ###WORKS UP TO HERE###
-  
-  
-  
+
   # Mount / subvolume
-  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@ /dev/${DISK}p2 /mnt
+  mount -o relatime,compress=zstd,ssd,space_cache=V2,subvol=@ /dev/${DISK}p2 /mnt
   cd /mnt
   #Makes mount points
-  mkdir -p {boot/efi,home,var/log,opt,tmp,swap,.snapshots}
+  mkdir -p {boot/efi,home,var/log,btrfs,tmp,swap}
   cd /
-  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@home /dev/${DISK}p2 /mnt/home
-  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@log /dev/${DISK}p2 /mnt/var/log
-  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@tmp /dev/${DISK}p2 /mnt/tmp
-  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@swap /dev/${DISK}p2 /mnt/swap
+  mount -o relatime,compress=zstd,ssd,space_cache=V2,subvol=@home /dev/${DISK}p2 /mnt/home
+  mount -o relatime,compress=zstd,ssd,space_cache=V2,subvol=@log /dev/${DISK}p2 /mnt/var/log
+  mount -o relatime,compress=zstd,ssd,space_cache=V2,subvol=@tmp /dev/${DISK}p2 /mnt/tmp
+  mount -o relatime,compress=zstd,ssd,space_cache=V2,subvol=@swap /dev/${DISK}p2 /mnt/swap
   mount /dev/${DISK}p1 /mnt/boot/efi
   lsblk
   echo "Are partitions/subvolumes mounted?"
@@ -85,7 +80,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   truncate -s 0 /mnt/swap/swapfile
   chattr +C /mnt/swap/swapfile
   btrfs property set /mnt/swap/swapfile compression none
-  dd if=/dev/zero of=/swap/swapfile bs=1M count=$SWAP status=progress
+  dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$SWAP status=progress
   chmod 600 /mnt/swap/swapfile
   lsattr /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
@@ -100,7 +95,7 @@ fi
 
 # Install essential packages
 echo "Installing essential packages."
-pacstrap /mnt base base-devel linux-zen linux-zen-headers linux-firmware NetworkManager intel-ucode btrfs-progs sudo
+pacstrap /mnt base base-devel linux-zen linux-zen-headers linux-firmware NetworkManager intel-ucode btrfs-progs sudo nano
 
 # Generate an fstab file
 echo "Generating fstab file."
@@ -111,7 +106,7 @@ sleep 2
 # Change root into the new system:
 echo "Changing root into the new system."
 echo -e "#!/bin/bash" >> install2.sh
-echo -e "DISK=$DISK BOOT=$BOOT >> install2.sh
+echo -e "DISK=$DISK BOOT=$BOOT" >> install2.sh
 cat post_chroot >> install2.sh
 cp install2.sh /mnt/
 chmod +x /mnt/install2.sh
