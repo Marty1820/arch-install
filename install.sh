@@ -40,8 +40,8 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo "Formating partitions"
   #if ${DISK} == nvme0n1; then
   #  NVME == p
-  mkfs.fat -F32 -L BOOT /dev/${DISK}p1
-  mkfs.btrfs -L ROOT /dev/${DISK}p2
+  mkfs.fat -F32 /dev/${DISK}p1
+  mkfs.btrfs /dev/${DISK}p2
 
   fdisk -l
   echo "Do the partitions look ok?"
@@ -55,19 +55,30 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   btrfs subvolume create /mnt/@log
   btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@swap
+  echo ""
+  echo "Are all subvolumes shown?"
+  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
   umount /mnt
   
+  
+  ###WORKS UP TO HERE###
+  
+  
+  
   # Mount / subvolume
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvolid=256,subvol=/@ /mnt
+  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@ /dev/${DISK}p2 /mnt
   cd /mnt
   #Makes mount points
   mkdir -p {boot/efi,home,var/log,opt,tmp,swap,.snapshots}
   cd /
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@home /mnt/home
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@log /mnt/var/log
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@tmp /mnt/tmp
-  mount -o rw,noatime,compress=zstd:3,ssd,space_cache,commit=120,subvol=/@swap /mnt/swap
+  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@home /dev/${DISK}p2 /mnt/home
+  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@log /dev/${DISK}p2 /mnt/var/log
+  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@tmp /dev/${DISK}p2 /mnt/tmp
+  mount -o noatime,commit=120,compress=zstd,ssd,space_cache=V2,subvol=@swap /dev/${DISK}p2 /mnt/swap
   mount /dev/${DISK}p1 /mnt/boot/efi
+  lsblk
+  echo "Are partitions/subvolumes mounted?"
+  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
   
   #Setting up SWAP
   ((SWAP=$SWAP_SIZE*1024))
