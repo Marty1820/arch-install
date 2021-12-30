@@ -67,7 +67,7 @@ done
 
 
 # Instaling and configuring packages & bootloader
-pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-slick-greeter qtile alacritty grub grub-btrfs efibootmgr nm-connection-editor parted gparted wireguard-tools libfprint fprintd youtube-dl vivaldi vivaldi-ffmpeg-codecs bitwarden gedit gedit-plugins libreoffice-still virtualbox feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi gnu-free-fonts ttf-hack pcmanfm gvfs gvfs-smb cifs-utils xarchiver calibre cheese discord gimp deluge-gtk code scrot vlc btop pacman-contrib kdeconnect redshift acpi bluez bluez-utils blueman
+pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-slick-greeter light-locker qtile alacritty grub grub-btrfs efibootmgr nm-connection-editor parted gparted wireguard-tools libfprint fprintd youtube-dl vivaldi vivaldi-ffmpeg-codecs bitwarden gedit gedit-plugins libreoffice-still virtualbox feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi gnu-free-fonts ttf-hack pcmanfm gvfs gvfs-smb cifs-utils xarchiver calibre cheese discord gimp deluge-gtk code scrot vlc btop pacman-contrib kdeconnect redshift acpi bluez bluez-utils blueman python-psutil
 
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
@@ -76,6 +76,7 @@ grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 #change GRUB_TIMEOUT_STYLE=hidden
 
 grub-mkconfig -o /boot/grub/grub.cfg
+
 sleep 2
 
 # Notifications Setup
@@ -85,6 +86,22 @@ tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null
 Name=org.freedesktop.Notifications
 Exec=/usr/lib/notification-daemon-1.0/notification-daemon
 EOT
+
+# Lightdm greeter change
+sed -i -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
+# Slick greeter settings
+tee -a /etc/lightdm/slick-greeter.conf > /dev/null <<EOT
+background-color = #282a36
+show-hostname = true
+show-power = true
+show-a11y = false
+show-keyboard = false
+show-clock = true
+show-quit = true
+font-name = Hack
+onscreen-keyboard = false
+enable-hidpi = on
+clock-format = %b %d %I:%M%p
 
 # FAIL2BAN Setup
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
@@ -106,15 +123,15 @@ ufw default allow outgoing
 
 #HAVEN'T TESTED TRACKPAD
 # Proper trackpad clicking
-touch /etc/X11/xorg.conf.d/30-touchpad.conf
-tee -a /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
-Section "InputClass"
-    Identifier "PIXA3854:00 093A:0274 Touchpad"
-    Driver "libinput"
-    Option "Tapping" "on"
-    Option "ClickMethod" "clickfinger"
-EndSection
-EOT
+#touch /etc/X11/xorg.conf.d/30-touchpad.conf
+#tee -a /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
+#Section "InputClass"
+#    Identifier "PIXA3854:00 093A:0274 Touchpad"
+#    Driver "libinput"
+#    Option "Tapping" "on"
+#    Option "ClickMethod" "clickfinger"
+#EndSection
+#EOT
 
 # PARU Setup
 sudo pacman -S --needed base-devel
@@ -123,9 +140,7 @@ cd paru
 makepkg -si
 paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts
 
-# More Services
-
-# Finishing
+# Enabling services
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
 systemctl enable tlp.service
@@ -133,6 +148,36 @@ systemctl enable lightdm.service
 systemctl enable fail2ban.service
 systemctl enable bluetooth.service
 systemctl enable cronie.service
+
+# Frame.Work specific settings
+# acpi issue
+sed -i -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/g' /etc/systemd/system.conf
+# Stuttering and periodic freeze
+echo -e "options i915 enable_psr=0" >> /etc/modprobe.d/i915.conf
+# Trackpad setup
+touch /etc/X11/xorg.conf.d/30-touchpad.conf
+tee /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
+Section "InputClass"
+    Identifier "PIXA3854:00 093A:0274 Touchpad"
+    Driver "libinput"
+    Option "Tapping" "on"
+    Option "ClickMethod" "clickfinger"
+    Option "DisableWhileTyping" "true"
+EndSection
+EOT
+
+# Add post install notes in users home
+# Setup fingerprint : https://wiki.archlinux.org/title/Fprint
+# touch /home/$username/recommendations.txt
+# tee /home/$username/recommendations.txt > /dev/null <<EOT
+#UFW is not enabled please run 'sudo ufw enable' to turn on
+#GRUB isn't set up for hibernation
+#https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file_on_Btrfs
+#GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=UUID=GETUUID resume_offset=CALCULATEDNUMBER"
+#GRUB_CMDLINE_LINUX="net.ifnames=0"
+#GRUB_TIMEOUT_STYLE=hidden
+#GRUB_DISABLE_SUBMENU=y
+#EOT
 
 exit
 swapoff /mnt/swap/swapfile
