@@ -66,9 +66,39 @@ done
 #echo -e "root ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
 
-# Instaling and configuring packages & bootloader
-pacman --needed -Sy git fwupd fail2ban ufw curl tree exa wget reflector systemd-resolvconf tlp tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip man-db man-pages texinfo alsa-utils notification-daemon xorg-server lightdm lightdm-slick-greeter light-locker qtile alacritty grub grub-btrfs efibootmgr nm-connection-editor parted gparted wireguard-tools libfprint fprintd youtube-dl vivaldi vivaldi-ffmpeg-codecs bitwarden gedit gedit-plugins libreoffice-still virtualbox feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi gnu-free-fonts ttf-hack pcmanfm gvfs gvfs-smb cifs-utils xarchiver calibre cheese discord gimp deluge-gtk code scrot vlc btop pacman-contrib kdeconnect redshift acpi bluez bluez-utils blueman python-psutil
+##############
+## PACKAGES ##
+##############
+# Essential
+pacman --needed -Sy git grub grub-btrfs efibootmgr pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector
 
+# Security/Power
+pacman --needed -S fwupd fail2ban ufw tlp 
+
+# Connections
+pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd notification-daemon 
+
+# Extractors/Helpful
+pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget 
+
+#Desktop
+pacman --needed -S xorg-server lightdm lightdm-slick-greeter light-locker qtile python-psutil feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi alacritty 
+
+# Visual Applications
+pacman --needed -S pcmanfm gvfs gvfs-smb cifs-utils calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox 
+
+# Fonts/extras
+pacman --needed -S gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift 
+
+# Testing/Temp
+pacman --needed -S thermald mesa
+
+systemctl enable --now thermald
+
+
+##############
+##BOOTLOADER##
+##############
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
 # Need to edit some lines in grub/can be done afterwards too
@@ -79,6 +109,9 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 sleep 2
 
+##############
+##APP SETUP ##
+##############
 # Notifications Setup
 touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
 tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
@@ -133,12 +166,16 @@ ufw default allow outgoing
 #EndSection
 #EOT
 
+##############
+##AUR HELPER##
+##############
 # PARU Setup
 sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
-paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts
+# AUR PACKAGES
+paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin
 
 # Enabling services
 systemctl enable NetworkManager.service
@@ -148,6 +185,7 @@ systemctl enable lightdm.service
 systemctl enable fail2ban.service
 systemctl enable bluetooth.service
 systemctl enable cronie.service
+systemctl enable fstrim.timer
 
 # Frame.Work specific settings
 # acpi issue
