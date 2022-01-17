@@ -64,11 +64,11 @@ Please Select:
 		;;
 	esac
 done
-#echo -e "root ALL=(ALL:ALL) ALL" >> /etc/sudoers
+sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 ## PACMAN SETUP
 sed -i 's/#Color/Color\\\nILoveCandy/' etc/pacman.conf
-sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 5/' etc/pacman.conf
+sed -i 's/#ParallelDownloads/ParallelDownloads/' etc/pacman.conf
 sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 
 ##############
@@ -138,7 +138,7 @@ Exec=/usr/lib/notification-daemon-1.0/notification-daemon
 EOT
 
 # Lightdm greeter change
-sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
+sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
 # Slick greeter settings
 tee -a /etc/lightdm/slick-greeter.conf > /dev/null <<EOT
 background-color = #282a36

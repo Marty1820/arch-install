@@ -1,7 +1,14 @@
 #!/bin/bash
 
-echo "This script will install arch linux with BTRFS on UEFI systems with a swapfile on an NVME drive."
-sleep 3
+echo -ne "
+----------------------------------------------------------------
+  This script installs Arch on BTRFS with UEFI and swapfile
+  YOUR DRIVE WILL BE FORMATED AND DELETE ALL DATA ON THE DISK
+  Please make sure you know what you are doing because
+  after formating your disk there is no way to get data back
+----------------------------------------------------------------
+"
+read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
 
 # Update the system clock
 timedatectl set-ntp true
@@ -9,12 +16,19 @@ timedatectl status
 echo "Is the 'NTP service: active'?"
 read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
 
+echo "Setting up mirrors for faster download"
+country=$(curl -4 ifconfig.co/country-iso)
+pacman -S --noconfirm reflector rsync
+cp /etc/pacmand.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+reflector -a 48 -c $country -f 5 -l 20 --sort rate --save /etc/pacmand.d/mirrorlist
+
 # Partition the disks
-read -p "Swap file size in GBs > " SWAP_SIZE
-echo $SWAP_SIZE GB swap
+echo "Disk & Swap setup"
+read -p "Enter swap file size in GBs > " SWAP_SIZE
+echo ${SWAP_SIZE}GB swap
 fdisk -l
-read -p "Drive name (ex. nvme0n1) > " DISK
-echo "arch will be installed on $DISK"
+read -p "Drive name (ex. sda or nvme0n1) > " DISK
+echo "Arch will be installed on $DISK"
 sleep 1
 
 # Verify the boot mode
@@ -38,10 +52,13 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   
   # Format the partitions
   echo "Formating partitions"
-  #if ${DISK} == nvme0n1; then
-  #  NVME == p
-  mkfs.fat -F32 /dev/${DISK}p1
-  mkfs.btrfs /dev/${DISK}p2
+  if [[ "${DISK}" =~ "nvme" ]]; then
+    parition=${DISK}p
+  else
+    partition=$DISK
+  fi
+  mkfs.fat -F32 -n "EFIBOOT" /dev/${partition}1
+  mkfs.btrfs -L ROOT /dev/${partition}2
 
   fdisk -l
   echo "Do the partitions look ok?"
@@ -49,7 +66,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   
   # Create btrfs volumes
   echo "Creating btrfs subvolumes."
-  mount /dev/${DISK}p2 /mnt
+  mount /dev/${partition}2 /mnt
   btrfs subvolume create /mnt/@
   btrfs subvolume create /mnt/@home
   btrfs subvolume create /mnt/@pkg
@@ -65,19 +82,19 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   umount /mnt
 
   # Mount / subvolume
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${DISK}p2 /mnt
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${partition}2 /mnt
   cd /mnt
   #Makes mount points
   mkdir -p {boot/efi,home,var/log,var/cache/pacman/pkg,.snapshots,tmp,srv,swap}
   cd /
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${DISK}p2 /mnt/home
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${DISK}p2 /mnt/var/cache/pacman/pkg
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${DISK}p2 /mnt/tmp
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${DISK}p2 /mnt/srv
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${DISK}p2 /mnt/var/log
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${DISK}p2 /mnt/.snapshots
-  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${DISK}p2 /mnt/swap
-  mount /dev/${DISK}p1 /mnt/boot/efi
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${partition}2 /mnt/home
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${partition}2 /mnt/var/cache/pacman/pkg
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${partition}2 /mnt/srv
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${partition}2 /mnt/var/log
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${partition}2 /mnt/.snapshots
+  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${partition}2 /mnt/swap
+  mount /dev/${partition}1 /mnt/boot/efi
   lsblk /dev/${DISK}
   echo "Are partitions/subvolumes mounted?"
   read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
