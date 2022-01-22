@@ -75,7 +75,7 @@ sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 ## PACKAGES ##
 ##############
 # Essential
-pacman --needed -Sy git grub grub-btrfs efibootmgr pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector
+pacman --needed -Sy git grub grub-btrfs efibootmgr pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector xdg-user-dirs
 
 # Security/Power
 pacman --needed -S fwupd fail2ban ufw tlp
