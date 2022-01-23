@@ -87,7 +87,7 @@ pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeco
 pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
 
 #Desktop
-pacman --needed -S xorg-server lightdm lightdm-slick-greeter light-locker qtile python-psutil feh imagemagick xorg-xbacklight lxappearance qt5ct conky rofi alacritty
+pacman --needed -S xorg-server lightdm lightdm-slick-greeter light-locker qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty
 
 # Visual Applications
 pacman --needed -S pcmanfm gvfs gvfs-smb cifs-utils calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
