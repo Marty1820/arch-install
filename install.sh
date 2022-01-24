@@ -70,9 +70,10 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   btrfs subvolume create /mnt/@
   btrfs subvolume create /mnt/@home
   btrfs subvolume create /mnt/@pkg
-  btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@srv
   btrfs subvolume create /mnt/@log
+  btrfs subvolume create /mnt/@cache
+  btrfs subvolume create /mnt/@tmp
   btrfs subvolume create /mnt/@snapshots
   btrfs subvolume create /mnt/@swap
   ls /mnt
@@ -85,13 +86,14 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${partition}2 /mnt
   cd /mnt
   #Makes mount points
-  mkdir -p {boot/efi,home,var/log,var/cache/pacman/pkg,.snapshots,tmp,srv,swap}
+  mkdir -p {boot/efi,home,var/cache/pacman/pkg,svr,var/log,var/cache,tmp,.snapshots,swap}
   cd /
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${partition}2 /mnt/home
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${partition}2 /mnt/var/cache/pacman/pkg
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${partition}2 /mnt/srv
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${partition}2 /mnt/var/log
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/${partition}2 /mnt/var/cache
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${partition}2 /mnt/.snapshots
   mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${partition}2 /mnt/swap
   mount /dev/${partition}1 /mnt/boot/efi
