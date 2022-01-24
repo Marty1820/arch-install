@@ -74,14 +74,15 @@ sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 ##############
 ## PACKAGES ##
 ##############
+
 # Essential
-pacman --needed -Sy git grub grub-btrfs efibootmgr pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector xdg-user-dirs
+pacman --needed -Sy git pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector xdg-user-dirs
 
 # Security/Power
 pacman --needed -S fwupd fail2ban ufw tlp
 
 # Connections
-pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd notification-daemon
+pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd
 
 # Extractors/Helpful
 pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
@@ -95,9 +96,13 @@ pacman --needed -S pcmanfm gvfs gvfs-smb cifs-utils calibre cheese discord gimp 
 # Fonts/extras
 pacman --needed -S gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
 
+
 ##############
 ##BOOTLOADER##
 ##############
+
+pacman --needed -S grub grub-btrfs efibootmgr
+
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
 #######WORK IN PROGRESS################
@@ -129,12 +134,14 @@ sleep 2
 ##############
 ##APP SETUP ##
 ##############
-# Notifications Setup
+
+# Notifications Setup Using 'dunst'
+pacman --needed -S dunst libnotify
 touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
 tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
 [D-BUS Service]
 Name=org.freedesktop.Notifications
-Exec=/usr/lib/notification-daemon-1.0/notification-daemon
+Exec=/usr/bin/dunst
 EOT
 
 # Lightdm greeter change
@@ -171,24 +178,12 @@ ufw default allow outgoing
 #must be enable after reboot
 #ufw enable
 
-#HAVEN'T TESTED TRACKPAD
-# Proper trackpad clicking
-#touch /etc/X11/xorg.conf.d/30-touchpad.conf
-#tee -a /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
-#Section "InputClass"
-#    Identifier "PIXA3854:00 093A:0274 Touchpad"
-#    Driver "libinput"
-#    Option "Tapping" "on"
-#    Option "ClickMethod" "clickfinger"
-#EndSection
-#EOT
-
 ##############
 ##AUR HELPER##
 ##############
 # PARU Setup
 ##ERROR: can't due as root!?
-pacman -S --needed base-devel
+pacman --needed -S base-devel
 git clone https://aur.archlinux.org/paru.git && cd paru
 makepkg -si
 cd .. && rm -dR paru
@@ -196,6 +191,7 @@ cd .. && rm -dR paru
 paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin
 
 # Enabling services
+systemctl enable paccache.timer
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
 systemctl enable tlp.service
@@ -221,16 +217,6 @@ Section "InputClass"
     Option "DisableWhileTyping" "true"
 EndSection
 EOT
-
-####################
-##WORK IN PROGRESS##
-####################
-# Add post install notes in users home
-# Setup fingerprint : https://wiki.archlinux.org/title/Fprint
-# touch /home/$username/recommendations.txt
-# tee /home/$username/recommendations.txt > /dev/null <<EOT
-#UFW is not enabled please run 'sudo ufw enable' to turn on
-#EOT
 
 exit
 swapoff /mnt/swap/swapfile
