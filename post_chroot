@@ -94,7 +94,7 @@ pacman --needed -S xorg-server lightdm lightdm-slick-greeter light-locker qtile 
 pacman --needed -S pcmanfm gvfs gvfs-smb cifs-utils calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
 
 # Fonts/extras
-pacman --needed -S gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
+pacman --needed -S adwaita-icon-theme gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
 
 
 ##############
