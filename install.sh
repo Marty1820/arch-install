@@ -50,15 +50,22 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo w # Write changes
 ) | fdisk /dev/$DISK
   
-  # Format the partitions
+  # NVME vs SSD/HDD
   echo "Formating partitions"
   if [[ "${DISK}" =~ "nvme" ]]; then
     parition=${DISK}p
   else
     partition=$DISK
   fi
-  mkfs.fat -F32 -n "EFIBOOT" /dev/${partition}1
-  mkfs.btrfs -L ROOT /dev/${partition}2
+  
+  # Future encryption setup | UNTESTED!
+  cryptsetup luksFormat --perf-no_read_workqueue --perf-no_write_workqueue --type luks2 --cipher aes-xts-plain64 --key-size 512 --iter-time 2000 --pbkdf argon2id --hash sha3-512 /dev/${partition}2
+  cryptsetup --allow-discards --perf-no_read_workqueue --perf-no_write_workqueue --persistent open /dev/${partition}2 crypt
+  
+  # Format partitions
+  mkfs.vfat -F32 -n "EFI" /dev/${partition}1
+  #mkfs.btrfs -L ROOT /dev/${partition}2
+  mkfs.btrfs -L ROOT /dev/mapper/crypt
 
   fdisk -l
   echo "Do the partitions look ok?"
@@ -66,7 +73,8 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   
   # Create btrfs volumes
   echo "Creating btrfs subvolumes."
-  mount /dev/${partition}2 /mnt
+  #mount /dev/${partition}2 /mnt
+  mount /dev/mapper/crypt /mnt
   btrfs subvolume create /mnt/@
   btrfs subvolume create /mnt/@home
   btrfs subvolume create /mnt/@pkg
@@ -83,19 +91,28 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   umount /mnt
 
   # Mount / subvolume
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${partition}2 /mnt
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${partition}2 /mnt
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/mapper/crypt /mnt
   cd /mnt
   #Makes mount points
   mkdir -p {boot/efi,home,var/cache/pacman/pkg,svr,var/log,var/cache,tmp,.snapshots,swap}
   cd /
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${partition}2 /mnt/home
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${partition}2 /mnt/var/cache/pacman/pkg
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${partition}2 /mnt/srv
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${partition}2 /mnt/var/log
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/${partition}2 /mnt/var/cache
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${partition}2 /mnt/.snapshots
-  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${partition}2 /mnt/swap
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/mapper/crypt /mnt/home
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/mapper/crypt /mnt/var/cache/pacman/pkg
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/mapper/crypt /mnt/srv
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/mapper/crypt /mnt/var/log
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/mapper/crypt /mnt/var/cache
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/mapper/crypt /mnt/tmp
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/mapper/crypt /mnt/.snapshots
+  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/mapper/crypt /mnt/swap
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${partition}2 /mnt/home
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${partition}2 /mnt/var/cache/pacman/pkg
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${partition}2 /mnt/srv
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${partition}2 /mnt/var/log
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/${partition}2 /mnt/var/cache
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
+  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${partition}2 /mnt/.snapshots
+  #mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${partition}2 /mnt/swap
   mount /dev/${partition}1 /mnt/boot/efi
   lsblk /dev/${DISK}
   echo "Are partitions/subvolumes mounted?"
@@ -106,6 +123,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   truncate -s 0 /mnt/swap/swapfile
   chattr +C /mnt/swap/swapfile
   btrfs property set /mnt/swap/swapfile compression none
+  #fallocate -l ${SWAP}G /mnt/swap/swapfile
   dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$SWAP status=progress
   chmod 600 /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
@@ -118,11 +136,34 @@ else
   exit 0
 fi
 
+# CPU information
+proc=$(cat /proc/cpuinfo | grep vendor_id | awk 'NR==1 {print $3}')
+if [[ $proc == GenuineIntel ]]; then
+  ucode=intel-ucode
+elif [[ $proc == AuthenticAMD ]]; then
+  ucode=amd-ucode
+else
+  ucode=''
+fi
+
+# Kernel chooser
+printf "linux\nlinux-hardened\nlinux-lts\nlinux-zen\n"
+read -p "Please type in your kernel: " kern
+read -p "Do you want headers installed(recommended)?(Y|n) " header
+  case ${header:0:1} in
+    Y|y ) 
+    kern='$kern ${kern}-header'
+    ;;
+    * )
+    kern=$kern
+    ;;
+  esac
+
+
 # Install essential packages
 echo "Installing essential packages."
-pacstrap /mnt base base-devel linux-zen linux-zen-headers \
-    linux-firmware networkmanager intel-ucode btrfs-progs \
-    sudo nano
+pacstrap /mnt base base-devel $ucode $kern linux-firmware \
+  networkmanager btrfs-progs sudo nano zstd
 
 # Generate an fstab file
 echo "Generating fstab file."
