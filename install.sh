@@ -16,12 +16,6 @@ timedatectl status
 echo "Is the 'NTP service: active'?"
 read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
 
-echo "Setting up mirrors for faster download"
-country=$(curl -4 ifconfig.co/country-iso)
-pacman -S --noconfirm reflector rsync
-cp /etc/pacmand.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-reflector -a 48 -c $country -f 5 -l 20 --sort rate --save /etc/pacmand.d/mirrorlist
-
 # Partition the disks
 echo "Disk & Swap setup"
 read -p "Enter swap file size in GBs > " SWAP_SIZE
@@ -40,7 +34,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo n # Add a new partition
   echo 1 # Partition number
   echo   # First sector (Accept default: 1)
-  echo +512M # Last sector (adds 512M space for EFI)
+  echo +300M # Last sector (adds 512M space for EFI)
   echo t # Changing partition type
   echo 1 # Set type to EFI
   echo n # Add a new partition
@@ -59,13 +53,13 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   fi
   
   # Future encryption setup | UNTESTED!
-  cryptsetup luksFormat --perf-no_read_workqueue --perf-no_write_workqueue --type luks2 --cipher aes-xts-plain64 --key-size 512 --iter-time 2000 --pbkdf argon2id --hash sha3-512 /dev/${partition}2
-  cryptsetup --allow-discards --perf-no_read_workqueue --perf-no_write_workqueue --persistent open /dev/${partition}2 crypt
+  cryptsetup luksFormat /dev/${partition}2
+  cryptsetup luksOpen /dev/${partition}2 root
   
   # Format partitions
   mkfs.vfat -F32 -n "EFI" /dev/${partition}1
   #mkfs.btrfs -L ROOT /dev/${partition}2
-  mkfs.btrfs -L ROOT /dev/mapper/crypt
+  mkfs.btrfs -L ROOT /dev/mapper/root
 
   fdisk -l
   echo "Do the partitions look ok?"
@@ -74,16 +68,16 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   # Create btrfs volumes
   echo "Creating btrfs subvolumes."
   #mount /dev/${partition}2 /mnt
-  mount /dev/mapper/crypt /mnt
-  btrfs subvolume create /mnt/@
-  btrfs subvolume create /mnt/@home
-  btrfs subvolume create /mnt/@pkg
-  btrfs subvolume create /mnt/@srv
-  btrfs subvolume create /mnt/@log
-  btrfs subvolume create /mnt/@cache
-  btrfs subvolume create /mnt/@tmp
-  btrfs subvolume create /mnt/@snapshots
-  btrfs subvolume create /mnt/@swap
+  mount /dev/mapper/root /mnt
+  cd /mnt
+  btrfs subvolume create @
+  btrfs subvolume create @home
+  btrfs subvolume create @srv
+  btrfs subvolume create @log
+  btrfs subvolume create @cache
+  btrfs subvolume create @tmp
+  btrfs subvolume create @snapshots
+  btrfs subvolume create @swap
   ls /mnt
   echo ""
   echo "Are all subvolumes shown?"
@@ -97,23 +91,14 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   #Makes mount points
   mkdir -p {boot/efi,home,var/cache/pacman/pkg,svr,var/log,var/cache,tmp,.snapshots,swap}
   cd /
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/mapper/crypt /mnt/home
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/mapper/crypt /mnt/var/cache/pacman/pkg
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/mapper/crypt /mnt/srv
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/mapper/crypt /mnt/var/log
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/mapper/crypt /mnt/var/cache
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/mapper/crypt /mnt/tmp
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/mapper/crypt /mnt/.snapshots
-  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/mapper/crypt /mnt/swap
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/${partition}2 /mnt/home
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@pkg /dev/${partition}2 /mnt/var/cache/pacman/pkg
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/${partition}2 /mnt/srv
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/${partition}2 /mnt/var/log
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/${partition}2 /mnt/var/cache
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/${partition}2 /mnt/tmp
-  #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/${partition}2 /mnt/.snapshots
-  #mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/${partition}2 /mnt/swap
-  mount /dev/${partition}1 /mnt/boot/efi
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/mapper/root /mnt/home
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/mapper/root /mnt/srv
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/mapper/root /mnt/var/log
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/mapper/root /mnt/var/cache
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/mapper/root /mnt/tmp
+  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
+  mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/mapper/root /mnt/swap
+  mount /dev/${partition}1 /mnt/boot
   lsblk /dev/${DISK}
   echo "Are partitions/subvolumes mounted?"
   read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
@@ -123,8 +108,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   truncate -s 0 /mnt/swap/swapfile
   chattr +C /mnt/swap/swapfile
   btrfs property set /mnt/swap/swapfile compression none
-  #fallocate -l ${SWAP}G /mnt/swap/swapfile
-  dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$SWAP status=progress
+  fallocate -l ${SWAP}G /mnt/swap/swapfile
   chmod 600 /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
   swapon /mnt/swap/swapfile
@@ -163,7 +147,7 @@ read -p "Do you want headers installed(recommended)?(Y|n) " header
 # Install essential packages
 echo "Installing essential packages."
 pacstrap /mnt base base-devel $ucode $kern linux-firmware \
-  networkmanager btrfs-progs sudo nano zstd
+  networkmanager btrfs-progs sudo nano
 
 # Generate an fstab file
 echo "Generating fstab file."

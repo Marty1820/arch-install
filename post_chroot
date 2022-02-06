@@ -27,6 +27,7 @@ sleep 2
 
 # Creating a new initramfs
 echo "Creating a new initramfs."
+# add btrfs in MODULES and encrypt before filesystem in HOOKS
 mkinitcpio -P
 
 sleep 2
@@ -119,11 +120,8 @@ PAGESIZE=$(getconf PAGESIZE)
 UUID=$(sudo blkid | grep p2 | awk '{print $2}' | tr -d '"')
 
 #https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file_on_Btrfs
-#GRUB_TIMEOUT=2
-#GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET"
-#GRUB_CMDLINE_LINUX="net.ifnames=0"
-#GRUB_TIMEOUT_STYLE=hidden
-#GRUB_DISABLE_SUBMENU=y
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$UUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
 
 ######################################
 
