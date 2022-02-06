@@ -108,7 +108,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   truncate -s 0 /mnt/swap/swapfile
   chattr +C /mnt/swap/swapfile
   btrfs property set /mnt/swap/swapfile compression none
-  fallocate -l ${SWAP}G /mnt/swap/swapfile
+  dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$SWAP status=progress
   chmod 600 /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
   swapon /mnt/swap/swapfile
