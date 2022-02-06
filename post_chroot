@@ -3,15 +3,11 @@ echo "Setting timezone."
 ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
 hwclock --systohc
 
-sleep 2
-
 # Localization
 echo "Setting localization"
-echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
+sed -i 's/#en_US.UTF-8 UTF-8\en_US.UTF-8 UTF-8/' /etc/locale.gen
 echo LANG=en_US.UTF-8 >> /etc/locale.conf
 locale-gen
-
-sleep 2
 
 # Hostname/Network configuration
 echo "Configuring hostname/network"
@@ -23,27 +19,22 @@ echo "127.0.0.1         localhost >> /etc/hosts"
 echo "::1		        localhost >> /etc/hosts"
 echo "127.0.1.1	        $HOSTNAME.localdomain	$HOSTNAME >> /etc/hosts"
 
-sleep 2
-
 # Creating a new initramfs
 echo "Creating a new initramfs."
-# add btrfs in MODULES and encrypt before filesystem in HOOKS
+sed -i 's/MODULES=()/MODULES=(btrfs)/' /etc/mkinitcpio.conf
+sed -i '/^#/!s/filesystems/encrypt filesystems resume/g' /etc/mkinitcpio.conf
 mkinitcpio -P
-
-sleep 2
 
 # Setting root password
 read -p "Type root passwd > " rootpwd
 echo -e "$rootpwd\n$rootpwd" | passwd
 
-sleep 2
-
 # Creating a user
 while true; do
 	echo "
 Please Select:
-1. Create a user
-0. Quit
+1. Create a new user
+0. Done
 "
 	read -p "Enter selection [0-1] > "
 
@@ -53,11 +44,9 @@ Please Select:
 		;;
 	1)	echo "User creation"
 		read -p "Type user name > " username
-		read -p "Type user passwd > " userpwd
+		read -p "Type user password > " userpwd
 		useradd -m -G wheel $username
 		echo -e "$userpwd\n$userpwd" | passwd $username
-		# USE SED TO REPLACE LINE
-		echo -e "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 		sleep 2
 		;;
 	*)	echo "Invalid entry" >&2
@@ -80,31 +69,29 @@ sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 pacman --needed -Sy git pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector xdg-user-dirs
 
 # Security/Power
-pacman --needed -S fwupd fail2ban ufw tlp
-
-# Connections
-pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd
+pacman --needed -S fwupd tlp systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd
 
 # Extractors/Helpful
 pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
 
 #Desktop
-pacman --needed -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 conky rofi alacritty
-
-# Visual Applications
-pacman --needed -S pcmanfm calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
+pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 conky rofi alacritty pcmanfm calibre \
+cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
 
 # Fonts/extras
 pacman --needed -S adwaita-icon-theme gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
-
 
 ##############
 ##BOOTLOADER##
 ##############
 
-pacman --needed -S grub grub-btrfs efibootmgr
-
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+if [[ $BOOT == 'uefi' ]]; then
+	pacman --needed -S grub grub-btrfs efibootmgr
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+else
+	pacman --needed -S grub grub-btrfs
+	grub-install --target=i386-pc /dev/$DISK
+fi
 
 #######WORK IN PROGRESS################
 
@@ -113,10 +100,12 @@ cd /root/
 curl -LJO https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts/btrfs_map_physical.c
 gcc -O2 -o btrfs_map_physical btrfs_map_physical.c
 rm btrfs_map_physical.c
-OFFSET=$(./btrfs_map_physical /swap/swapfile | awk 'FNR == 3 {print $1}')
+# I wouldn't fully trust this and make sure your verify after reboot
+printf "#######################################################\n### I WOULD CHECK THIS AFTER YOU ARE IN YOUR SYSTEM ###\n###          LINE 99-115 OF 'post_chroot'           ###\n#######################################################"
+OFFSET=$(./btrfs_map_physical /swap/swapfile | awk -F '\t' 'FNR == 2 {print $NF}')
 PAGESIZE=$(getconf PAGESIZE)
 ((RESUME_OFFSET=$OFFSET/$PAGESIZE))
-
+sleep 5
 UUID=$(blkid | grep mapper | awk '{print $2}' | tr -d '"')
 CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
 
@@ -124,18 +113,17 @@ CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
 sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$CRYPTUUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
 sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub
+
 ######################################
 
 grub-mkconfig -o /boot/grub/grub.cfg
-
-sleep 2
 
 ##############
 ##APP SETUP ##
 ##############
 
 # Notifications Setup Using 'dunst'
-pacman --needed -S dunst libnotify
+pacman --needed --noconfirm -S dunst libnotify
 touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
 tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
 [D-BUS Service]
@@ -144,6 +132,7 @@ Exec=/usr/bin/dunst
 EOT
 
 # FAIL2BAN Setup
+pacman --needed --noconfirm -S fail2ban
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 touch /var/log/auth.log
 tee -a /etc/fail2ban/jail.local > /dev/null <<EOT
@@ -156,6 +145,7 @@ maxretry = 6
 EOT
 
 # UFW Defaults
+pacman --needed --noconfirm -S ufw
 ufw default deny incoming
 ufw default allow outgoing
 #must be enable after reboot
@@ -165,13 +155,15 @@ ufw default allow outgoing
 ##AUR HELPER##
 ##############
 # PARU Setup
-##ERROR: can't due as root!?
+su $username
+cd ~
 pacman --needed -S base-devel
 git clone https://aur.archlinux.org/paru.git && cd paru
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
 paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin ly
+exit && cd /
 
 # Enabling services
 systemctl enable ly.service
@@ -185,14 +177,11 @@ systemctl enable cronie.service
 systemctl enable fstrim.timer
 
 # Laptop Settings
-# Low battery hibernate
 touch /etc/udev/rules.d/99-lowbat.rules
 tee -a /etc/udev/rules.d/99-lowbat.rules > /dev/null <<EOT
 # Suspend the system when battery level drops to 5% or lower
 SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOT
-
-# Frame.Work specific settings
 # acpi issue
 sed -i -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/g' /etc/systemd/system.conf
 # Stuttering and periodic freeze
