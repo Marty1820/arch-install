@@ -199,6 +199,14 @@ systemctl enable bluetooth.service
 systemctl enable cronie.service
 systemctl enable fstrim.timer
 
+# Laptop Settings
+# Low battery hibernate
+touch /etc/udev/rules.d/99-lowbat.rules
+tee -a /etc/udev/rules.d/99-lowbat.rules > /dev/null <<EOT
+# Suspend the system when battery level drops to 5% or lower
+SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
+EOT
+
 # Frame.Work specific settings
 # acpi issue
 sed -i -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/g' /etc/systemd/system.conf
