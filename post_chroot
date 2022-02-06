@@ -89,10 +89,10 @@ pacman --needed -S systemd-resolvconf nm-connection-editor wireguard-tools kdeco
 pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
 
 #Desktop
-pacman --needed -S xorg-server lightdm lightdm-slick-greeter light-locker qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty
+pacman --needed -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 conky rofi alacritty
 
 # Visual Applications
-pacman --needed -S pcmanfm gvfs gvfs-smb cifs-utils calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
+pacman --needed -S pcmanfm calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
 
 # Fonts/extras
 pacman --needed -S adwaita-icon-theme gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
@@ -117,12 +117,13 @@ OFFSET=$(./btrfs_map_physical /swap/swapfile | awk 'FNR == 3 {print $1}')
 PAGESIZE=$(getconf PAGESIZE)
 ((RESUME_OFFSET=$OFFSET/$PAGESIZE))
 
-UUID=$(sudo blkid | grep p2 | awk '{print $2}' | tr -d '"')
+UUID=$(blkid | grep mapper | awk '{print $2}' | tr -d '"')
+CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
 
 #https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file_on_Btrfs
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$UUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
-
+sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$CRYPTUUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
+sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub
 ######################################
 
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -141,22 +142,6 @@ tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null
 Name=org.freedesktop.Notifications
 Exec=/usr/bin/dunst
 EOT
-
-# Lightdm greeter change
-sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
-# Slick greeter settings
-tee -a /etc/lightdm/slick-greeter.conf > /dev/null <<EOT
-background-color = #282a36
-show-hostname = true
-show-power = true
-show-a11y = false
-show-keyboard = false
-show-clock = true
-show-quit = true
-font-name = Hack
-onscreen-keyboard = false
-enable-hidpi = on
-clock-format = %b %d %I:%M%p
 
 # FAIL2BAN Setup
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
@@ -186,14 +171,14 @@ git clone https://aur.archlinux.org/paru.git && cd paru
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
-paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin
+paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin ly
 
 # Enabling services
+systemctl enable ly.service
 systemctl enable paccache.timer
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
 systemctl enable tlp.service
-systemctl enable lightdm.service
 systemctl enable fail2ban.service
 systemctl enable bluetooth.service
 systemctl enable cronie.service
