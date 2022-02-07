@@ -91,12 +91,12 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   #Makes mount points
   mkdir -p {boot/efi,home,var/cache/pacman/pkg,svr,var/log,var/cache,tmp,.snapshots,swap}
   cd /
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/mapper/root /mnt/home
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/mapper/root /mnt/srv
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/mapper/root /mnt/var/log
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/mapper/root /mnt/var/cache
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/mapper/root /mnt/tmp
-  mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@home /dev/mapper/root /mnt/home
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@srv /dev/mapper/root /mnt/srv
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@log /dev/mapper/root /mnt/var/log
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@cache /dev/mapper/root /mnt/var/cache
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@tmp /dev/mapper/root /mnt/tmp
+  mount -o noatime,compress=zstd,ssd,space_cache=v2,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
   mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/mapper/root /mnt/swap
   mount /dev/${partition}1 /mnt/boot
   lsblk /dev/${DISK}
