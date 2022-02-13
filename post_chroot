@@ -113,6 +113,20 @@ CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
 sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$CRYPTUUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
 sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub
+sed -i 's/#GRUB_SAVEDEFAULT=true/GRUB_SAVEDEFAULT=true/' /etc/default/grub
+sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved/' /etc/default/grub
+
+## Custom GRUB entries
+tee -a /etc/grud.d/40_custom > /dev/null <<EOT
+menuentry "System shutdown" {
+        echo "System shutting down..."
+        halt
+}
+menuentry "System restart" {
+        echo "System rebooting..."
+        reboot
+}
+EOT
 
 ######################################
 
