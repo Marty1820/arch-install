@@ -75,11 +75,11 @@ pacman --needed -S fwupd tlp systemd-resolvconf nm-connection-editor wireguard-t
 pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
 
 #Desktop
-pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 conky rofi alacritty pcmanfm calibre \
-cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
+pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty pcmanfm \
+calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
 
 # Fonts/extras
-pacman --needed -S adwaita-icon-theme gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
+pacman --needed -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
 
 ##############
 ##BOOTLOADER##
