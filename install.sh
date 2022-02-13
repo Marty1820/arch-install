@@ -136,7 +136,7 @@ read -p "Please type in your kernel: " kern
 read -p "Do you want headers installed(recommended)?(Y|n) " header
   case ${header:0:1} in
     Y|y ) 
-    kern='$kern ${kern}-header'
+    kern='$kern ${kern}-headers'
     ;;
     * )
     kern=$kern
