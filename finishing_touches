@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Essential
 pacman --needed -Sy tlp acpi bluez bluez-utils blueman intel-media-driver alsa-utils reflector xdg-user-dirs gnome-keyring xss-lock i3lock kdeconnect libfprint fprintd
 

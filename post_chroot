@@ -65,21 +65,8 @@ sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 ## PACKAGES ##
 ##############
 
-# Essential
-pacman --needed -Sy git pacman-contrib acpi bluez bluez-utils blueman intel-media-driver man-db man-pages texinfo alsa-utils reflector xdg-user-dirs
-
-# Security/Power
-pacman --needed -S fwupd tlp systemd-resolvconf nm-connection-editor wireguard-tools kdeconnect libfprint fprintd
-
-# Extractors/Helpful
-pacman --needed -S tar libarchive binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
-
-#Desktop
-pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty pcmanfm \
-calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
-
-# Fonts/extras
-pacman --needed -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack youtube-dl scrot vlc btop redshift
+pacman --needed -Sy git pacman-contrib fwupd man-db man-pages texinfo systemd-resolvconf nm-connection-editor wireguard-tools tar libarchive \
+binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
 
 ##############
 ##BOOTLOADER##
@@ -93,29 +80,6 @@ else
 	grub-install --target=i386-pc /dev/$DISK
 fi
 
-#######WORK IN PROGRESS################
-
-## Get resume offset for BTRFS swapfile
-cd /root/
-curl -LJO https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts/btrfs_map_physical.c
-gcc -O2 -o btrfs_map_physical btrfs_map_physical.c
-rm btrfs_map_physical.c
-# I wouldn't fully trust this and make sure your verify after reboot
-printf "#######################################################\n### I WOULD CHECK THIS AFTER YOU ARE IN YOUR SYSTEM ###\n###          LINE 99-115 OF 'post_chroot'           ###\n#######################################################"
-OFFSET=$(./btrfs_map_physical /swap/swapfile | awk -F '\t' 'FNR == 2 {print $NF}')
-PAGESIZE=$(getconf PAGESIZE)
-((RESUME_OFFSET=$OFFSET/$PAGESIZE))
-sleep 5
-UUID=$(blkid | grep mapper | awk '{print $2}' | tr -d '"')
-CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
-
-#https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file_on_Btrfs
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$CRYPTUUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
-sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub
-sed -i 's/#GRUB_SAVEDEFAULT=true/GRUB_SAVEDEFAULT=true/' /etc/default/grub
-sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved/' /etc/default/grub
-
 ## Custom GRUB entries
 tee -a /etc/grud.d/40_custom > /dev/null <<EOT
 menuentry "System shutdown" {
@@ -128,22 +92,11 @@ menuentry "System restart" {
 }
 EOT
 
-######################################
-
 grub-mkconfig -o /boot/grub/grub.cfg
 
 ##############
 ##APP SETUP ##
 ##############
-
-# Notifications Setup Using 'dunst'
-pacman --needed --noconfirm -S dunst libnotify
-touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
-tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
-[D-BUS Service]
-Name=org.freedesktop.Notifications
-Exec=/usr/bin/dunst
-EOT
 
 # FAIL2BAN Setup
 pacman --needed --noconfirm -S fail2ban
@@ -157,63 +110,43 @@ filter = sshd
 logpath = /var/log/auth.log
 maxretry = 6
 EOT
+systemctl enable fail2ban.service
 
 # UFW Defaults
 pacman --needed --noconfirm -S ufw
 ufw default deny incoming
 ufw default allow outgoing
-#must be enable after reboot
-#ufw enable
+systemctl enable ufw.service
+# ufw enable
 
-##############
-##AUR HELPER##
-##############
-# PARU Setup
-su $username
-cd ~
-pacman --needed -S base-devel
-git clone https://aur.archlinux.org/paru.git && cd paru
-makepkg -si
-cd .. && rm -dR paru
-# AUR PACKAGES
-paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin ly
-exit && cd /
+# Antivirus/Malware
+pacman --needed --noconfirm -S clamav clamtk
+freshclam
+systemctl enable clamav-freshclam.service
+systemctl enable clamav-daemon.service
 
-# Enabling services
-systemctl enable ly.service
+# Services
 systemctl enable paccache.timer
 systemctl enable NetworkManager.service
 systemctl enable systemd-resolved.service
-systemctl enable tlp.service
-systemctl enable fail2ban.service
-systemctl enable bluetooth.service
-systemctl enable cronie.service
 systemctl enable fstrim.timer
 
-# Laptop Settings
-touch /etc/udev/rules.d/99-lowbat.rules
-tee -a /etc/udev/rules.d/99-lowbat.rules > /dev/null <<EOT
-# Suspend the system when battery level drops to 5% or lower
-SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
-EOT
-# acpi issue
-sed -i -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/g' /etc/systemd/system.conf
-# Stuttering and periodic freeze
-echo -e "options i915 enable_psr=0" >> /etc/modprobe.d/i915.conf
-# Trackpad setup
-touch /etc/X11/xorg.conf.d/30-touchpad.conf
-tee /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
-Section "InputClass"
-    Identifier "PIXA3854:00 093A:0274 Touchpad"
-    Driver "libinput"
-    Option "Tapping" "on"
-    Option "ClickMethod" "clickfinger"
-    Option "DisableWhileTyping" "true"
-EndSection
+## Finishing touches document create
+touch /home/$username/finishing-touches.txt
+tee -a /home /$username//finishing-touches.txt > /dev/null <<EOT
+Verify '/etc/default/grub' is setup right for hibernation
+then run 'grub-mkconfig -o /boot/grub/grub.cfg' for proper setup
+
+Setup backups run 'sudo timeshift-gtk' in terminal
+
+run 'sudo ufw enable' to start firewall
+
+# for complete setup
+wget https://raw.githubusercontent.com/Marty1820/arch-install/main/finishing_touches
 EOT
 
 exit
 swapoff /mnt/swap/swapfile
 umount -R /mnt
 echo "We are done. Reboot your computer and remove installation media"
-echo "Run part 3 in your home folder after login...coming soon"
+echo "Read and run if wanted 'finishing-touches.txt' in your home folder after login"
