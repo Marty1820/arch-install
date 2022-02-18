@@ -4,7 +4,7 @@
 pacman --needed -Sy tlp acpi bluez bluez-utils blueman intel-media-driver alsa-utils reflector xdg-user-dirs gnome-keyring xss-lock i3lock kdeconnect libfprint fprintd
 
 #Desktop
-pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty pcmanfm \
+pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty pcmanfm gvfs \
 calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
 
 # Fonts/extras
