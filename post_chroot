@@ -66,7 +66,7 @@ sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
 ##############
 
 pacman --needed -Sy git pacman-contrib fwupd man-db man-pages texinfo systemd-resolvconf nm-connection-editor wireguard-tools tar libarchive \
-binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget
+binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget exfat-utils
 
 ##############
 ##BOOTLOADER##
