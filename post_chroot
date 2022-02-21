@@ -11,8 +11,8 @@ locale-gen
 
 # Hostname/Network configuration
 echo "Configuring hostname/network"
-read -p "Type Hostname > " HOSTNAME
-echo $HOSTNAME >> /etc/hostname
+read -rp "Type Hostname > " HOSTNAME
+echo "$HOSTNAME" >> /etc/hostname
 
 echo "# <ip-address>    <hostname.domain.org>   <hostname>"
 echo "127.0.0.1         localhost >> /etc/hosts"
@@ -26,7 +26,7 @@ sed -i '/^#/!s/filesystems/encrypt filesystems resume/g' /etc/mkinitcpio.conf
 mkinitcpio -P
 
 # Setting root password
-read -p "Type root passwd > " rootpwd
+read -rp "Type root passwd > " rootpwd
 echo -e "$rootpwd\n$rootpwd" | passwd
 
 # Creating a user
@@ -36,17 +36,17 @@ Please Select:
 1. Create a new user
 0. Done
 "
-	read -p "Enter selection [0-1] > "
+	read -rp "Enter selection [0-1] > "
 
 	case "$REPLY" in
 	0)	echo "Continue installation."
 		break
 		;;
 	1)	echo "User creation"
-		read -p "Type user name > " username
-		read -p "Type user password > " userpwd
-		useradd -m -G wheel $username
-		echo -e "$userpwd\n$userpwd" | passwd $username
+		read -rp "Type user name > " username
+		read -rp "Type user password > " userpwd
+		useradd -m -G wheel "$username"
+		echo -e "$userpwd\n$userpwd" | passwd "$username"
 		sleep 2
 		;;
 	*)	echo "Invalid entry" >&2
@@ -77,7 +77,7 @@ if [[ $BOOT == 'uefi' ]]; then
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 else
 	pacman --needed -S grub grub-btrfs
-	grub-install --target=i386-pc /dev/$DISK
+	grub-install --target=i386-pc /dev/"$DISK"
 fi
 
 ## Custom GRUB entries
@@ -132,8 +132,8 @@ systemctl enable systemd-resolved.service
 systemctl enable fstrim.timer
 
 ## Finishing touches document create
-touch /home/$username/finishing-touches.txt
-tee -a /home /$username//finishing-touches.txt > /dev/null <<EOT
+touch /home/"$username"/finishing-touches.txt
+tee -a /home/"$username"/finishing-touches.txt > /dev/null <<EOT
 Verify '/etc/default/grub' is setup right for hibernation
 then run 'grub-mkconfig -o /boot/grub/grub.cfg' for proper setup
 

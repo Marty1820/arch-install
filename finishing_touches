@@ -13,7 +13,7 @@ pacman --needed -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack p
 #######WORK IN PROGRESS################
 
 ## Get resume offset for BTRFS swapfile
-cd /root/
+cd /root/ || exit
 curl -LJO https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts/btrfs_map_physical.c
 gcc -O2 -o btrfs_map_physical btrfs_map_physical.c
 rm btrfs_map_physical.c
@@ -28,8 +28,8 @@ UUID=$(blkid | grep mapper | awk '{print $2}' | tr -d '"')
 CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
 
 #https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Hibernation_into_swap_file_on_Btrfs
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume=$UUID resume_offset=$RESUME_OFFSET/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=$CRYPTUUID:root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet"/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 quiet mem_sleep_default=deep resume='$UUID' resume_offset='$RESUME_OFFSET'"/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice='$CRYPTUUID':root root=/dev/mapper/root net.ifnames=0"/' /etc/default/grub
 sed -i 's/#GRUB_ENABLE_CRYPTODISK=y/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub
 sed -i 's/#GRUB_SAVEDEFAULT=true/GRUB_SAVEDEFAULT=true/' /etc/default/grub
 sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved/' /etc/default/grub
@@ -51,10 +51,8 @@ EOT
 ##AUR HELPER##
 ##############
 # PARU Setup
-su $username
-cd ~
 pacman --needed -S base-devel
-git clone https://aur.archlinux.org/paru.git && cd paru
+git clone https://aur.archlinux.org/paru.git && cd paru || return
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
@@ -101,15 +99,4 @@ Section "InputClass"
     Option "ClickMethod" "clickfinger"
     Option "DisableWhileTyping" "true"
 EndSection
-EOT
-
-## Finishing touches document create
-touch /home/$username/finishing-touches.txt
-tee -a /home /$username//finishing-touches.txt > /dev/null <<EOT
-Verify '/etc/default/grub' is setup right for hibernation
-then run 'grub-mkconfig -o /boot/grub/grub.cfg' for proper setup
-
-Setup backups run 'sudo timeshift-gtk' in terminal
-
-run 'sudo ufw enable' to start firewall
 EOT

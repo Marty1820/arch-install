@@ -8,20 +8,20 @@ echo -ne "
   after formating your disk there is no way to get data back
 ----------------------------------------------------------------
 "
-read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
+read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
 
 # Update the system clock
 timedatectl set-ntp true
 timedatectl status
 echo "Is the 'NTP service: active'?"
-read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
+read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
 
 # Partition the disks
 echo "Disk & Swap setup"
-read -p "Enter swap file size in GBs > " SWAP_SIZE
-echo ${SWAP_SIZE}GB swap
+read -rp "Enter swap file size in GBs > " SWAP_SIZE
+echo "${SWAP_SIZE}"GB swap
 fdisk -l
-read -p "Drive name (ex. sda or nvme0n1) > " DISK
+read -rp "Drive name (ex. sda or nvme0n1) > " DISK
 echo "Arch will be installed on $DISK"
 sleep 1
 
@@ -42,34 +42,34 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo   # First sector (Accept default: varies)
   echo   # Last sector (Accept default: varies)
   echo w # Write changes
-) | fdisk /dev/$DISK
+) | fdisk /dev/"$DISK"
   
   # NVME vs SSD/HDD
   echo "Formating partitions"
   if [[ "${DISK}" =~ "nvme" ]]; then
-    parition=${DISK}p
+    partition=${DISK}p
   else
     partition=$DISK
   fi
   
   # Future encryption setup | UNTESTED!
-  cryptsetup luksFormat /dev/${partition}2
-  cryptsetup luksOpen /dev/${partition}2 root
+  cryptsetup luksFormat /dev/"${partition}"2
+  cryptsetup luksOpen /dev/"${partition}"2 root
   
   # Format partitions
-  mkfs.vfat -F32 -n "EFI" /dev/${partition}1
+  mkfs.vfat -F32 -n "EFI" /dev/"${partition}"1
   #mkfs.btrfs -L ROOT /dev/${partition}2
   mkfs.btrfs -L ROOT /dev/mapper/root
 
   fdisk -l
   echo "Do the partitions look ok?"
-  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
+  read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
   
   # Create btrfs volumes
   echo "Creating btrfs subvolumes."
   #mount /dev/${partition}2 /mnt
   mount /dev/mapper/root /mnt
-  cd /mnt
+  cd /mnt || exit
   btrfs subvolume create @
   btrfs subvolume create @home
   btrfs subvolume create @srv
@@ -81,13 +81,13 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   ls /mnt
   echo ""
   echo "Are all subvolumes shown?"
-  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
+  read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
   umount /mnt
 
   # Mount / subvolume
   #mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/${partition}2 /mnt
   mount -o relatime,compress=zstd,ssd,space_cache=v2,subvol=@ /dev/mapper/crypt /mnt
-  cd /mnt
+  cd /mnt || exit
   #Makes mount points
   mkdir -p {boot/efi,home,var/cache/pacman/pkg,svr,var/log,var/cache,tmp,.snapshots,swap}
   cd /
@@ -98,17 +98,17 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   mount -o noatime,compress=zstd,ssd,discard=async,space_cache=v2,subvol=@tmp /dev/mapper/root /mnt/tmp
   mount -o noatime,compress=zstd,ssd,discard=async,space_cache=v2,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
   mount -o compress=no,ssd,space_cache=v2,discard=async,subvol=@swap /dev/mapper/root /mnt/swap
-  mount /dev/${partition}1 /mnt/boot
-  lsblk /dev/${DISK}
+  mount /dev/"${partition}"1 /mnt/boot
+  lsblk /dev/"${DISK}"
   echo "Are partitions/subvolumes mounted?"
-  read -p "Enter to continue <ctrl + c> to cancel"</dev/tty
+  read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
   
   #Setting up SWAP
   ((SWAP=$SWAP_SIZE*1024))
   truncate -s 0 /mnt/swap/swapfile
   chattr +C /mnt/swap/swapfile
   btrfs property set /mnt/swap/swapfile compression none
-  dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=$SWAP status=progress
+  dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count="$SWAP" status=progress
   chmod 600 /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
   swapon /mnt/swap/swapfile
@@ -121,7 +121,7 @@ else
 fi
 
 # CPU information
-proc=$(cat /proc/cpuinfo | grep vendor_id | awk 'NR==1 {print $3}')
+proc=$(grep vendor_id < /proc/cpuinfo | awk 'NR==1 {print $3}')
 if [[ $proc == GenuineIntel ]]; then
   ucode=intel-ucode
 elif [[ $proc == AuthenticAMD ]]; then
@@ -132,21 +132,21 @@ fi
 
 # Kernel chooser
 printf "linux\nlinux-hardened\nlinux-lts\nlinux-zen\n"
-read -p "Please type in your kernel: " kern
-read -p "Do you want headers installed(recommended)?(Y|n) " header
+read -rp "Please type in your kernel: " kern
+read -rp "Do you want headers installed(recommended)?(Y|n) " header
   case ${header:0:1} in
     Y|y ) 
-    kern='$kern ${kern}-headers'
+    kern="$kern ${kern}-headers"
     ;;
     * )
-    kern=$kern
+    echo "No headers installed"
     ;;
   esac
 
 
 # Install essential packages
 echo "Installing essential packages."
-pacstrap /mnt base base-devel $ucode $kern linux-firmware \
+pacstrap /mnt base base-devel "$ucode" "$kern" linux-firmware \
   networkmanager btrfs-progs sudo nano
 
 # Generate an fstab file
@@ -157,8 +157,10 @@ sleep 2
 
 # Change root into the new system:
 echo "Changing root into the new system."
-echo -e "#!/bin/bash" >> install2.sh
-echo -e "DISK=$DISK BOOT=$BOOT" >> install2.sh
+{
+  echo -e "#!/bin/bash"
+  "DISK=$DISK BOOT=$BOOT"
+} >> install.sh
 cat post_chroot >> install2.sh
 cp install2.sh /mnt/
 chmod +x /mnt/install2.sh
