@@ -63,6 +63,7 @@ systemctl enable cronie.service
 # Enabling extra services
 systemctl enable tlp.service
 systemctl enable bluetooth.service
+systemctl enable systemd-timesyncd.service
 
 # Logind.conf settings
 sed -i 's/#HandleLidSwitch=suspend/HandleLidSwitch=hibernate\\\nHandleLidSwitchExternalPower=suspend/' /etc/systemd/logind.conf
