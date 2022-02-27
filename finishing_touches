@@ -10,6 +10,9 @@ calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plug
 # Fonts/extras
 pacman --needed -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack powerline-fonts youtube-dl scrot vlc btop redshift
 
+# ZSH/SHELL add-ons
+pacman --needed -S zsh zsg-syntax-highlighting zsh-autosuggestions zsh-completions starship
+
 #######WORK IN PROGRESS################
 
 ## Get resume offset for BTRFS swapfile
