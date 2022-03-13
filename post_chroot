@@ -31,28 +31,28 @@ echo -e "$rootpwd\n$rootpwd" | passwd
 
 # Creating a user
 while true; do
-	echo "
+  echo "
 Please Select:
 1. Create a new user
 0. Done
 "
-	read -rp "Enter selection [0-1] > "
+  read -rp "Enter selection [0-1] > "
 
-	case "$REPLY" in
-	0)	echo "Continue installation."
-		break
-		;;
-	1)	echo "User creation"
-		read -rp "Type user name > " username
-		read -rp "Type user password > " userpwd
-		useradd -m -G wheel "$username"
-		echo -e "$userpwd\n$userpwd" | passwd "$username"
-		sleep 2
-		;;
-	*)	echo "Invalid entry" >&2
-		continue
-		;;
-	esac
+  case "$REPLY" in
+    0)	echo "Continue installation."
+      break
+      ;;
+    1)	echo "User creation"
+      read -rp "Type user name > " username
+      read -rp "Type user password > " userpwd
+      useradd -m -G wheel "$username"
+      echo -e "$userpwd\n$userpwd" | passwd "$username"
+      sleep 2
+      ;;
+    *)	echo "Invalid entry" >&2
+      continue
+      ;;
+  esac
 done
 sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
@@ -73,11 +73,11 @@ binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa w
 ##############
 
 if [[ $BOOT == 'uefi' ]]; then
-	pacman --needed -S grub grub-btrfs efibootmgr
-	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+  pacman --needed -S grub grub-btrfs efibootmgr
+  grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 else
-	pacman --needed -S grub grub-btrfs
-	grub-install --target=i386-pc /dev/"$DISK"
+  pacman --needed -S grub grub-btrfs
+  grub-install --target=i386-pc /dev/"$DISK"
 fi
 
 ## Custom GRUB entries

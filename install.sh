@@ -42,8 +42,8 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   echo   # First sector (Accept default: varies)
   echo   # Last sector (Accept default: varies)
   echo w # Write changes
-) | fdisk /dev/"$DISK"
-  
+  ) | fdisk /dev/"$DISK"
+
   # NVME vs SSD/HDD
   echo "Formating partitions"
   if [[ "${DISK}" =~ "nvme" ]]; then
@@ -51,11 +51,11 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   else
     partition=$DISK
   fi
-  
+
   # Future encryption setup | UNTESTED!
   cryptsetup luksFormat /dev/"${partition}"2
   cryptsetup luksOpen /dev/"${partition}"2 root
-  
+
   # Format partitions
   mkfs.vfat -F32 -n "EFI" /dev/"${partition}"1
   #mkfs.btrfs -L ROOT /dev/${partition}2
@@ -64,7 +64,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   fdisk -l
   echo "Do the partitions look ok?"
   read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
-  
+
   # Create btrfs volumes
   echo "Creating btrfs subvolumes."
   #mount /dev/${partition}2 /mnt
@@ -102,7 +102,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   lsblk /dev/"${DISK}"
   echo "Are partitions/subvolumes mounted?"
   read -rp "Enter to continue <ctrl + c> to cancel"</dev/tty
-  
+
   #Setting up SWAP
   ((SWAP=$SWAP_SIZE*1024))
   truncate -s 0 /mnt/swap/swapfile
@@ -112,7 +112,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   chmod 600 /mnt/swap/swapfile
   mkswap /mnt/swap/swapfile
   swapon /mnt/swap/swapfile
-  
+
   sleep 2
 else
   echo "Boot mode BIOS"
@@ -134,14 +134,14 @@ fi
 printf "linux\nlinux-hardened\nlinux-lts\nlinux-zen\n"
 read -rp "Please type in your kernel: " kern
 read -rp "Do you want headers installed(recommended)?(Y|n) " header
-  case ${header:0:1} in
-    Y|y ) 
+case ${header:0:1} in
+  Y|y )
     kern="$kern ${kern}-headers"
     ;;
-    * )
+  * )
     echo "No headers installed"
     ;;
-  esac
+esac
 
 
 # Install essential packages
