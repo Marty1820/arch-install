@@ -1,17 +1,27 @@
 #!/bin/bash
 
 # Essential
-pacman --needed -Sy tlp acpi bluez bluez-utils blueman intel-media-driver alsa-utils reflector xdg-user-dirs gnome-keyring xss-lock i3lock kdeconnect libfprint fprintd
+pacman --needed --noconfirm -Sy tlp acpi bluez bluez-utils blueman intel-media-driver alsa-utils reflector \
+xdg-user-dirs gnome-keyring xss-lock i3lock kdeconnect libfprint fprintd
 
-#Desktop
-pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi alacritty pcmanfm gvfs \
-calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit gedit-plugins libreoffice-still virtualbox
+# Applications
+pacman --needed --noconfirm -S feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi \
+alacritty pcmanfm gvfs calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit \
+gedit-plugins libreoffice-still virtualbox
+
+# Qtile
+pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil
+
+# i3
+pacman --needed --noconfirm -S i3-gaps i3blocks
 
 # Fonts/extras
-pacman --needed -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack powerline-fonts youtube-dl scrot vlc btop redshift
+pacman --needed --noconfirm -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack \
+powerline-fonts youtube-dl scrot vlc btop redshift
 
 # ZSH/SHELL add-ons
-pacman --needed -S zsh zsg-syntax-highlighting zsh-autosuggestions zsh-completions starship
+pacman --needed --noconfirm -S zsh zsg-syntax-highlighting zsh-autosuggestions zsh-completions \
+starship
 
 #######WORK IN PROGRESS################
 
@@ -21,7 +31,8 @@ curl -LJO https://raw.githubusercontent.com/osandov/osandov-linux/master/scripts
 gcc -O2 -o btrfs_map_physical btrfs_map_physical.c
 rm btrfs_map_physical.c
 # I wouldn't fully trust this and make sure your verify after reboot
-printf "#######################################################\n### I WOULD CHECK THIS AFTER YOU ARE IN YOUR SYSTEM ###\n###          LINE 98-118 OF 'post_chroot'           ###\n#######################################################"
+printf "
+#######################################################\n### I WOULD CHECK THIS AFTER YOU ARE IN YOUR SYSTEM ###\n###   WORK IN PROGRESS section 'finishing_touches'  ###\n#######################################################"
 sleep 5
 OFFSET=$(./btrfs_map_physical /swap/swapfile | awk -F '\t' 'FNR == 2 {print $NF}')
 PAGESIZE=$(getconf PAGESIZE)
@@ -59,7 +70,7 @@ git clone https://aur.archlinux.org/paru.git && cd paru || return
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
-paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin
+paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin brave-bin
 exit && cd /
 systemctl enable cronie.service
 
