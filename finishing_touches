@@ -111,6 +111,7 @@ Section "InputClass"
     Identifier "PIXA3854:00 093A:0274 Touchpad"
     Driver "libinput"
     Option "Tapping" "on"
+    Option "TappingButtonMap" "lmr"
     Option "ClickMethod" "clickfinger"
     Option "DisableWhileTyping" "true"
 EndSection
