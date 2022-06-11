@@ -116,7 +116,7 @@ if [[ -d /sys/firmware/efi/efivars ]]; then
   sleep 2
 else
   echo "Boot mode BIOS"
-  echo "Script not configured for BIOS...yet"
+  echo "Script not configured for BIOS"
   exit 0
 fi
 
