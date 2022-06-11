@@ -22,7 +22,7 @@ echo "127.0.1.1	        $HOSTNAME.localdomain	$HOSTNAME >> /etc/hosts"
 # Creating a new initramfs
 echo "Creating a new initramfs."
 sed -i 's/MODULES=()/MODULES=(btrfs)/' /etc/mkinitcpio.conf
-sed -i '/^#/!s/filesystems/encrypt filesystems resume/g' /etc/mkinitcpio.conf
+sed -i '/^#/!s/filesystems/encrypt btrfs filesystems resume/g' /etc/mkinitcpio.conf
 mkinitcpio -P
 
 # Setting root password
@@ -57,9 +57,11 @@ done
 sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 ## PACMAN SETUP
-sed -i 's/#Color/Color\\\nILoveCandy/' etc/pacman.conf
-sed -i 's/#ParallelDownloads/ParallelDownloads/' etc/pacman.conf
-sed -i 's/#CheckSpace/CheckSpace/' etc/pacman.conf
+sed -i 's/#HookDir/HookDir/' /etc/pacman.conf
+sed -i 's/#Color/Color\\\nILoveCandy/' /etc/pacman.conf
+sed -i 's/#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+sed -i 's/#CheckSpace/CheckSpace/' /etc/pacman.conf
+sed -i 's/#VerbosePkgLists/VerbosePkgLists/' /etc/pacman.conf
 
 ##############
 ## PACKAGES ##
@@ -71,6 +73,8 @@ binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa w
 ##############
 ##BOOTLOADER##
 ##############
+
+##### GOING TO SWITCH TO SYSTEMD-BOOT
 
 if [[ $BOOT == 'uefi' ]]; then
   pacman --needed -S grub grub-btrfs efibootmgr
@@ -119,12 +123,6 @@ ufw default allow outgoing
 systemctl enable ufw.service
 # ufw enable
 
-# Antivirus/Malware
-pacman --needed --noconfirm -S clamav clamtk
-freshclam
-systemctl enable clamav-freshclam.service
-systemctl enable clamav-daemon.service
-
 # Services
 systemctl enable paccache.timer
 systemctl enable NetworkManager.service
@@ -136,8 +134,6 @@ touch /home/"$username"/finishing-touches.txt
 tee -a /home/"$username"/finishing-touches.txt > /dev/null <<EOT
 Verify '/etc/default/grub' is setup right for hibernation
 then run 'grub-mkconfig -o /boot/grub/grub.cfg' for proper setup
-
-Setup backups run 'sudo timeshift-gtk' in terminal
 
 run 'sudo ufw enable' to start firewall
 
