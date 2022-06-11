@@ -1,27 +1,11 @@
 #!/bin/bash
 
-# Essential
-pacman --needed --noconfirm -Sy tlp acpi bluez bluez-utils blueman intel-media-driver alsa-utils reflector \
-xdg-user-dirs gnome-keyring xss-lock i3lock kdeconnect libfprint fprintd
-
-# Applications
-pacman --needed --noconfirm -S feh imagemagick xorg-xbacklight lxappearance-gtk3 qt5ct conky rofi \
-alacritty pcmanfm gvfs calibre cheese discord gimp deluge-gtk parted gparted bitwarden gedit \
-gedit-plugins libreoffice-still virtualbox
-
-# Qtile
-pacman --needed --noconfirm -S xorg-server xorg-xinit qtile python-psutil
-
-# i3
-pacman --needed --noconfirm -S i3-gaps i3blocks
-
-# Fonts/extras
-pacman --needed --noconfirm -S adwaita-icon-theme ttf-font-awesome gnu-free-fonts ttf-hack \
-powerline-fonts youtube-dl scrot vlc btop redshift
-
-# ZSH/SHELL add-ons
-pacman --needed --noconfirm -S zsh zsg-syntax-highlighting zsh-autosuggestions zsh-completions \
-starship
+# Packages
+pacman --needed --noconfirm -Sy acpi acpilight alacritty alsa-utils autoconf automake base bison blueman bluez-utils btop \
+calibre checkbashisms cheese cronie dash dunst exa exfat-utils fail2ban flex fprintd fwupd gimp gparted grim imv intel-ucode \
+kdeconnect libreoffice-still man-db man-pages nano nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector \
+snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack ufw vlc wget wireguard-tools wofi xdg-user-dirs youtube-dl \
+zsh-autosuggestions zsh-completions zsh-syntax-highlighting
 
 #######WORK IN PROGRESS################
 
@@ -70,12 +54,13 @@ git clone https://aur.archlinux.org/paru.git && cd paru || return
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
-paru -S minecraft-launcher nerd-fonts-complete timeshift ttf-ms-fonts visual-studio-code-bin brave-bin
-exit && cd /
-systemctl enable cronie.service
+paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts visual-studio-code-bin wev
+exit && cd ~
 
 # Enabling extra services
 systemctl enable tlp.service
+systemctl mask systemd-rfkill.service
+systemctl mask systemd-rfkill.socket
 systemctl enable bluetooth.service
 systemctl enable systemd-timesyncd.service
 
@@ -83,36 +68,33 @@ systemctl enable systemd-timesyncd.service
 sed -i 's/#HandleLidSwitch=suspend/HandleLidSwitch=hibernate\\\nHandleLidSwitchExternalPower=suspend/' /etc/systemd/logind.conf
 sed -i 's/#HoldoffTimeoutSec=30s/HoldoffTimeoutSec=30s/' /etc/systemd/logind.conf
 
-# Sets times for standby/suspend
-touch /etc/X11/xorg.conf.d/30-dpms.conf
-tee -a /etc/X11/xorg.conf.d/30-dpms.conf > /dev/null <<EOT
-Section "ServerFlags"
-    Option "StandbyTime" "5"
-    Option "SuspendTime" "10"
-    Option "OffTime" "60"
-    Option "BlankTime" "60"
-EndSection
-EOT
-
 # Laptop Settings
 touch /etc/udev/rules.d/99-lowbat.rules
 tee -a /etc/udev/rules.d/99-lowbat.rules > /dev/null <<EOT
 # Suspend the system when battery level drops to 5% or lower
 SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOT
+
 # acpi issue
 sed -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/' /etc/systemd/system.conf
+
 # Stuttering and periodic freeze/No longer needed but doesn't cause issue's
 echo -e "options i915 enable_psr=0" >> /etc/modprobe.d/i915.conf
-# Trackpad setup/allows tapping and palm rejection
-touch /etc/X11/xorg.conf.d/30-touchpad.conf
-tee /etc/X11/xorg.conf.d/30-touchpad.conf > /dev/null <<EOT
-Section "InputClass"
-    Identifier "PIXA3854:00 093A:0274 Touchpad"
-    Driver "libinput"
-    Option "Tapping" "on"
-    Option "TappingButtonMap" "lmr"
-    Option "ClickMethod" "clickfinger"
-    Option "DisableWhileTyping" "true"
-EndSection
+
+# Change /bin/sh to dash instead of bash
+ln -sfT dash /usr/bin/sh
+mkdir /etc/pacman.d/hooks
+touch /etc/pacman.d/hooks/dashbinsh.hook
+tee -a /etc/pacman.d/hooks/dashbinsh.hook  > /dev/null <<EOT
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = bash
+
+[Action]
+Description = Re-pointing /bin/sh symlink to dash...
+When = PostTransaction
+Exec = /usr/bin/ln -sfT dash /usr/bin/sh
+Depends = dash
 EOT
