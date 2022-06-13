@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Packages
-pacman --needed --noconfirm -Sy acpi acpilight alacritty alsa-utils autoconf automake base bison blueman bluez-utils btop \
-calibre checkbashisms cheese cronie dash dunst exa exfat-utils fail2ban flex fprintd fwupd gimp gparted grim imv intel-ucode \
-kdeconnect libreoffice-still man-db man-pages nano nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector \
-snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack ufw vlc wget wireguard-tools fuzzel xdg-user-dirs youtube-dl \
-zsh-autosuggestions zsh-completions zsh-syntax-highlighting
+pacman --needed --noconfirm -Sy alacritty alsa-utils blueman bluez-utils btop calibre checkbashisms cheese cronie dash dunst \
+exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv kdeconnect libreoffice-still man-db man-pages nano \
+nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack \
+ufw vlc wget wireguard-tools fuzzel xdg-user-dirs youtube-dl zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting \
+pipewire wireplumber pipewire-pulse pipewire-alsa pamixer
 
 #######WORK IN PROGRESS################
 
@@ -63,6 +63,7 @@ systemctl mask systemd-rfkill.service
 systemctl mask systemd-rfkill.socket
 systemctl enable bluetooth.service
 systemctl enable systemd-timesyncd.service
+systemctl --user enable --now pipewire-pulse.socket
 
 # Logind.conf settings
 sed -i 's/#HandleLidSwitch=suspend/HandleLidSwitch=hibernate\\\nHandleLidSwitchExternalPower=suspend/' /etc/systemd/logind.conf
