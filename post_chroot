@@ -76,27 +76,22 @@ binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa w
 
 ##### GOING TO SWITCH TO SYSTEMD-BOOT
 
+# THIS MIGHT BE WRONG STILL NEED TO TEST IT
+
 if [[ $BOOT == 'uefi' ]]; then
-  pacman --needed -S grub grub-btrfs efibootmgr
-  grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
-else
-  pacman --needed -S grub grub-btrfs
-  grub-install --target=i386-pc /dev/"$DISK"
-fi
-
-## Custom GRUB entries
-tee -a /etc/grud.d/40_custom > /dev/null <<EOT
-menuentry "System shutdown" {
-        echo "System shutting down..."
-        halt
-}
-menuentry "System restart" {
-        echo "System rebooting..."
-        reboot
-}
+  bootctl install
+  touch /boot/loader/entries/arch-zen.conf
+  tee -a /boot/loader/entries/arch-zen.conf > /dev/null <<EOT
+  title Arch Linux Zen
+  linux /vmlinuz-linux-zen
+  initrd /intel-ucode.img
+  initrd /initramfs-linux-zen.img
+  options cryptdevice=UUID=8bf27631-ee15-469c-bc85-b423741f24bf:root:allow-discards root=/dev/mapper/root rootflags=subvol=@ rw resume=/dev/mapper/root resume_offset=802233 net.ifnames=0 quiet nvme.noacpi=1
 EOT
-
-grub-mkconfig -o /boot/grub/grub.cfg
+  systemctl enable systemd-boot-update.service
+else
+  echo "How did you get here in BIOS mode?"
+fi
 
 ##############
 ##APP SETUP ##
