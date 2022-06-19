@@ -54,7 +54,7 @@ git clone https://aur.archlinux.org/paru.git && cd paru || return
 makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
-paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts visual-studio-code-bin wev
+paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts visual-studio-code-bin wev wlsunset
 exit && cd ~
 
 # Enabling extra services
