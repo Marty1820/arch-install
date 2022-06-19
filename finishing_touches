@@ -65,6 +65,13 @@ systemctl enable bluetooth.service
 systemctl enable systemd-timesyncd.service
 systemctl --user enable --now pipewire-pulse.socket
 
+# UFW
+systemctl enable ufw.service
+# For KDEConnect
+sudo ufw allow 1714:1765/udp
+sudo ufw allow 1714:1765/udp
+sudo ufw enable
+
 # Logind.conf settings
 sed -i 's/#HandleLidSwitch=suspend/HandleLidSwitch=hibernate\\\nHandleLidSwitchExternalPower=suspend/' /etc/systemd/logind.conf
 sed -i 's/#HoldoffTimeoutSec=30s/HoldoffTimeoutSec=30s/' /etc/systemd/logind.conf
