@@ -45,7 +45,7 @@ Please Select:
     1)	echo "User creation"
       read -rp "Type user name > " username
       read -rp "Type user password > " userpwd
-      useradd -m -G wheel "$username"
+      useradd -m -G wheel video "$username"
       echo -e "$userpwd\n$userpwd" | passwd "$username"
       sleep 2
       ;;
