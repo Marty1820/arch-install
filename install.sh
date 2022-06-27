@@ -133,13 +133,13 @@ fi
 # Kernel chooser
 printf "linux\nlinux-hardened\nlinux-lts\nlinux-zen\n"
 read -rp "Please type in your kernel: " kern
-read -rp "Do you want headers installed(recommended)?(Y|n) " header
+read -rp "Do you want headers installed? [y|N] " header
 case ${header:0:1} in
-  Y|y )
+  Y|y|yes|Yes )
     kern="$kern ${kern}-headers"
     ;;
   * )
-    echo "No headers installed"
+    echo "No headers will be installed"
     ;;
 esac
 
