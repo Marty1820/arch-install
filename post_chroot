@@ -70,6 +70,17 @@ sed -i 's/#VerbosePkgLists/VerbosePkgLists/' /etc/pacman.conf
 pacman --needed -Sy git pacman-contrib fwupd man-db man-pages texinfo systemd-resolvconf nm-connection-editor wireguard-tools tar libarchive \
 binutils bzip2 gzip lzop xz zstd p7zip unrar zip unzip xarchiver curl tree exa wget exfat-utils bash-completion
 
+#######################
+##XDG Directory setup##
+#######################
+
+tee -a /etc/security/pam_env.conf > /dev/null <<EOT
+XDG_DATA_HOME    DEFAULT=@{HOME}/.local/share
+XDG_CONFIG_HOME  DEFAULT=@{HOME}/.config
+XDG_CACHE_HOME   DEFAULT=@{HOME}/.cache
+XDG_STATE_HOME   DEFAULT=@{HOME}/.local/state
+EOT
+
 ##############
 ##BOOTLOADER##
 ##############
