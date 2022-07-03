@@ -88,6 +88,7 @@ EOT
 ##### GOING TO SWITCH TO SYSTEMD-BOOT
 
 # THIS MIGHT BE WRONG STILL NEED TO TEST IT
+# Only setup for linux-zen kernel
 
 if [[ $BOOT == 'uefi' ]]; then
   bootctl install
