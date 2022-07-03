@@ -97,7 +97,7 @@ if [[ $BOOT == 'uefi' ]]; then
   linux /vmlinuz-linux-zen
   initrd /intel-ucode.img
   initrd /initramfs-linux-zen.img
-  options cryptdevice=UUID=8bf27631-ee15-469c-bc85-b423741f24bf:root:allow-discards root=/dev/mapper/root rootflags=subvol=@ rw resume=/dev/mapper/root resume_offset=802233 net.ifnames=0 quiet nvme.noacpi=1
+  options cryptdevice=UUID=8bf27631-ee15-469c-bc85-b423741f24bf:root:allow-discards root=/dev/mapper/root rootflags=subvol=@ rw resume=/dev/mapper/root resume_offset=802233 net.ifnames=0 quiet nvme.noacpi=1 mem_sleep_default=deep
 EOT
   systemctl enable systemd-boot-update.service
 else
