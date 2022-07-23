@@ -3,7 +3,7 @@
 # Packages
 # retrieved packages with 'pacman -Qentq'
 pacman --needed --noconfirm -Sy alacritty alsa-utils blueman bluez-utils btop calibre checkbashisms cheese cronie dash dunst \
-exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv kdeconnect libreoffice-still man-db man-pages nano \
+exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv libreoffice-still man-db man-pages nano \
 nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack \
 ufw vlc wget wireguard-tools rofi xdg-user-dirs youtube-dl zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting \
 pipewire wireplumber pipewire-pulse pipewire-alsa pamixer nemo nemo-fileroller gvfs-mtp ntfs-3g rsync android-tools
@@ -56,7 +56,7 @@ makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
 # retrieved with 'pacman -Qemtq'
-paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts vscodium-bin wev wlsunset
+paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts vscodium-bin wev wlsunset a2ln
 exit && cd ~
 
 # Enabling extra services
@@ -69,9 +69,6 @@ systemctl --user enable --now pipewire-pulse.socket
 
 # UFW
 systemctl enable ufw.service
-# For KDEConnect
-sudo ufw allow 1714:1765/udp
-sudo ufw allow 1714:1765/udp
 sudo ufw enable
 
 # Logind.conf settings
