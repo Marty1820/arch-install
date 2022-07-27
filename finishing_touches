@@ -3,7 +3,7 @@
 # Packages
 # retrieved packages with 'pacman -Qentq'
 pacman --needed --noconfirm -Sy alacritty alsa-utils blueman bluez-utils btop calibre checkbashisms cheese cronie dash dunst \
-exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv libreoffice-still man-db man-pages nano \
+exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv libreoffice-still man-db man-pages nano nano-syntax-highlighting\
 nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack \
 ufw vlc wget wireguard-tools rofi xdg-user-dirs youtube-dl zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting \
 pipewire wireplumber pipewire-pulse pipewire-alsa pamixer nemo nemo-fileroller gvfs-mtp ntfs-3g rsync android-tools
