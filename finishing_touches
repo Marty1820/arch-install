@@ -1,12 +1,35 @@
 #!/bin/bash
 
 # Packages
-# retrieved packages with 'pacman -Qentq'
-pacman --needed --noconfirm -Sy alacritty alsa-utils blueman bluez-utils btop calibre checkbashisms cheese cronie dash dunst \
-exa exfat-utils fail2ban fprintd fwupd gimp gparted grim slurp imv libreoffice-still man-db man-pages nano nano-syntax-highlighting\
-nm-connection-editor nvme-cli pacman-contrib powerline-fonts reflector snapper starship sway tldr tlp tree ttf-font-awesome ttf-hack \
-ufw vlc wget wireguard-tools rofi xdg-user-dirs youtube-dl zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting \
-pipewire wireplumber pipewire-pulse pipewire-alsa pamixer nemo nemo-fileroller gvfs-mtp ntfs-3g rsync android-tools
+# retrieve full list of packages with 'pacman -Qentq'
+
+# Security & Battery & Network
+pacman --needed --noconfirm -Sy fail2ban ufw wireguard-tools tlp nm-connection-editor
+
+# Terminal & Shells
+pacman --needed --noconfirm -Sy alacritty dash zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting wget youtube-dl
+
+# Terminal Apps
+pacman --needed --noconfirm -Sy btop checkbashisms exa fwupd man-db man-pages tldr nano nano-syntax-highlighting \
+nvme-cli pacman-contrib reflector snapper starship tree
+
+# Drive Management
+pacman --needed --noconfirm -Sy gparted exfat-utils ntfs-3g android-tools rsync
+
+#Bluetooth & Audio
+pacman --needed --noconfirm -Sy blueman bluez-utils alsa-utils pipewire wireplumber pipewire-pulse pipewire-alsa pamixer
+
+# Windows Manager/Config shortcuts
+pacman --needed --noconfirm -Sy sway grim slurp imv rofi dunst
+
+# File Manager
+pacman --needed --noconfirm -Sy nemo nemo-fileroller gvfs-mtp xdg-user-dirs
+
+# Fonts
+pacman --needed --noconfirm -Sy ttf-font-awesome ttf-hack powerline-fonts
+
+# Misc.
+pacman --needed --noconfirm -Sy calibre gimp libreoffice-still vlc fprintd
 
 #######WORK IN PROGRESS################
 
