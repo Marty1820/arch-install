@@ -29,7 +29,7 @@ pacman --needed --noconfirm -Sy nemo nemo-fileroller gvfs-mtp xdg-user-dirs
 pacman --needed --noconfirm -Sy ttf-font-awesome ttf-hack powerline-fonts
 
 # Misc.
-pacman --needed --noconfirm -Sy calibre gimp libreoffice-still vlc fprintd
+pacman --needed --noconfirm -Sy galculator calibre gimp libreoffice-still vlc fprintd
 
 #######WORK IN PROGRESS################
 
