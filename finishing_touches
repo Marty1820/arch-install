@@ -14,7 +14,7 @@ pacman --needed --noconfirm -Sy btop checkbashisms exa fwupd man-db man-pages tl
 nvme-cli pacman-contrib reflector snapper starship tree
 
 # Drive Management
-pacman --needed --noconfirm -Sy gparted exfat-utils ntfs-3g android-tools rsync
+pacman --needed --noconfirm -Sy exfat-utils ntfs-3g android-tools rsync
 
 #Bluetooth & Audio
 pacman --needed --noconfirm -Sy blueman bluez-utils alsa-utils pipewire wireplumber pipewire-pulse pipewire-alsa pamixer
@@ -29,7 +29,7 @@ pacman --needed --noconfirm -Sy nemo nemo-fileroller gvfs-mtp xdg-user-dirs
 pacman --needed --noconfirm -Sy ttf-font-awesome ttf-hack powerline-fonts
 
 # Misc.
-pacman --needed --noconfirm -Sy galculator calibre gimp libreoffice-still vlc fprintd acpilight
+pacman --needed --noconfirm -Sy galculator calibre gimp libreoffice-still vlc fprintd acpilight xf86-video-intel vulkan-intel
 
 #######WORK IN PROGRESS################
 
@@ -79,7 +79,7 @@ makepkg -si
 cd .. && rm -dR paru
 # AUR PACKAGES
 # retrieved with 'pacman -Qemtq'
-paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-fonts vscodium-bin wev wlsunset a2ln
+paru -S brave-bin minecraft-launcher nerd-fonts-complete ttf-ms-win11-auto vscodium-bin wev wlsunset a2ln
 exit && cd ~
 
 # Enabling extra services
