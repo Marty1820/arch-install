@@ -355,13 +355,22 @@ Install AUR packages
 
 # Frame.Work Specific settings
 
+`s2idle` vs `deep` sleep, make permanent by adding `mem_sleep_default=deep` to kernel parameters
+
+    cat /sys/power/mem_sleep
+    [s2idle] deep
+    echo deep > /sys/power/mem_sleep
+    cat /sys/power/mem_sleep
+    s2idle [deep]
+
+Intel Wi-Fi 6E AX210 reset/low throughput/"Microcode SW error"
+
+    /etc/modprobe.d/iwlwifi.conf
+    options iwlwifi disable_11ax=Y
+
 acpi issue
 
     sed -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/' /etc/systemd/system.conf
-
-Stuttering and periodic freeze/No longer needed but doesn't cause issue's
-    
-    echo -e "options i915 enable_psr=0" >> /etc/modprobe.d/i915.conf
 
 Fingerprint reader:
 
