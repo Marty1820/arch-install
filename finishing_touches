@@ -108,9 +108,6 @@ EOT
 # acpi issue
 sed -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/' /etc/systemd/system.conf
 
-# Stuttering and periodic freeze/No longer needed but doesn't cause issue's
-echo -e "options i915 enable_psr=0" >> /etc/modprobe.d/i915.conf
-
 # Change /bin/sh to dash instead of bash
 ln -sfT dash /usr/bin/sh
 mkdir /etc/pacman.d/hooks
