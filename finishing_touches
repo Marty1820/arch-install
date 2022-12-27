@@ -11,7 +11,7 @@ pacman --needed --noconfirm -Sy alacritty dash zsh zsh-autosuggestions zsh-compl
 
 # Terminal Apps
 pacman --needed --noconfirm -Sy btop checkbashisms exa fwupd man-db man-pages tldr nano nano-syntax-highlighting \
-nvme-cli pacman-contrib reflector snapper starship tree
+  nvme-cli pacman-contrib reflector snapper starship tree
 
 # Drive Management
 pacman --needed --noconfirm -Sy exfat-utils ntfs-3g android-tools rsync
@@ -44,7 +44,7 @@ printf "
 sleep 5
 OFFSET=$(./btrfs_map_physical /swap/swapfile | awk -F '\t' 'FNR == 2 {print $NF}')
 PAGESIZE=$(getconf PAGESIZE)
-((RESUME_OFFSET=$OFFSET/$PAGESIZE))
+((RESUME_OFFSET = $OFFSET / $PAGESIZE))
 sleep 5
 UUID=$(blkid | grep mapper | awk '{print $2}' | tr -d '"')
 CRYPTUUID=$(blkid | grep p2 | awk '{print $2}' | tr -d '"')
@@ -63,7 +63,7 @@ sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved/' /etc/default/grub
 # Notifications Setup Using 'dunst'
 pacman --needed --noconfirm -S dunst libnotify
 touch /usr/share/dbus-1/services/org.freedesktop.Notifications.service
-tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service > /dev/null <<EOT
+tee /usr/share/dbus-1/services/org.freedesktop.Notifications.service >/dev/null <<EOT
 [D-BUS Service]
 Name=org.freedesktop.Notifications
 Exec=/usr/bin/dunst
@@ -100,7 +100,7 @@ sed -i 's/#HoldoffTimeoutSec=30s/HoldoffTimeoutSec=30s/' /etc/systemd/logind.con
 
 # Laptop Settings
 touch /etc/udev/rules.d/99-lowbat.rules
-tee -a /etc/udev/rules.d/99-lowbat.rules > /dev/null <<EOT
+tee -a /etc/udev/rules.d/99-lowbat.rules >/dev/null <<EOT
 # Suspend the system when battery level drops to 5% or lower
 SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOT
@@ -112,7 +112,7 @@ sed -i 's/#RebootWatchdogSec=0/RebootWatchdogSec=0/' /etc/systemd/system.conf
 ln -sfT dash /usr/bin/sh
 mkdir /etc/pacman.d/hooks
 touch /etc/pacman.d/hooks/dashbinsh.hook
-tee -a /etc/pacman.d/hooks/dashbinsh.hook  > /dev/null <<EOT
+tee -a /etc/pacman.d/hooks/dashbinsh.hook >/dev/null <<EOT
 [Trigger]
 Type = Package
 Operation = Install
