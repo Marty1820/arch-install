@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Packages
 # retrieve full list of packages with 'pacman -Qentq'
