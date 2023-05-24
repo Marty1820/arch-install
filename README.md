@@ -1,3 +1,6 @@
+| :exclamation: Not updated frequently |
+| ------------------------------------ |
+
 # Marty's Computer Setup [Arch]
 
 # USE AT YOUR OWN RISK!
