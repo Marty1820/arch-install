@@ -166,13 +166,17 @@ sed -i 's/^#CheckSpace/CheckSpace/' /etc/pacman.conf
 sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' /etc/pacman.conf
 
 # Install extra packages
-pacman --needed -Sy --noconfirm git pacman-contrib fwupd man-db man-pages nm-connection-editor wireguard-tools curl tree exa bat fail2ban ufw
+pacman --needed -Sy --noconfirm git pacman-contrib fwupd man-db man-pages nm-connection-editor wireguard-tools curl tree exa bat fail2ban ufw snapper reflector
 
 # Enable services
 systemctl enable NetworkManager.service
 systemctl enable fstrim.timer
 systemctl enable paccache.timer
 systemctl enable fail2ban.service
+systemctl enable reflector.service
+systemctl enable snapper-cleanup.timer
+systemctl enable snapper-backup.timer
+systemctl enable snapper-timeline.timer
 ufw default deny incoming
 ufw default allow outgoing
 systemctl enable ufw.service

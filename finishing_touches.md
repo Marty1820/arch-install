@@ -51,6 +51,11 @@ This document lists post-install steps, configurations, and service setups to fi
   systemctl enable bluetooth.service
   systemctl enable systemd-timesyncd.service
   ```
+- Misc.
+  ```bash
+  systemctl enable fwupd-refresh.timer
+  systemctl enable fail2ban.service
+  ```
 - Enable firewall:
   ```bash
   sudo ufw enable
