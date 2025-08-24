@@ -1,14 +1,11 @@
 # Finishing Touches after Base Arch Install
 
-This document lists post-install steps, configurations, and service setups to finalize your Arch system.  
+This document lists post-install steps, configurations, and service setups to finalize your Arch system.
 
 ---
 
-
-# retrieve full list of packages with 'pacman -Qentq'
-# install packages
-
 ## 1. Kernel & Initramfs Setup
+
 - Edit `/etc/mkinitcpio.d/linux.preset` to include UKI paths:
   ```ini
   default_uki="/boot/EFI/EFI/Linux/arch-linux.efi"
@@ -22,6 +19,7 @@ This document lists post-install steps, configurations, and service setups to fi
 ---
 
 ## 2. AUR Helper (paru)
+
 - Install prerequisites
   ```bash
   sudo pacmand --needed -S base-devel
@@ -41,6 +39,7 @@ This document lists post-install steps, configurations, and service setups to fi
 ---
 
 ## 3. Enable and Configure Services
+
 - Power management:
   ```bash
   systemctl enable tlp.service
@@ -59,29 +58,49 @@ This document lists post-install steps, configurations, and service setups to fi
 
 ---
 
-## 4. Logind Configuration
+## 4. Laptop Configuration
+
 Edit `/etc/systemd/logind.conf`:
+
 - Set lid switch behavior:
+
   ```ini
-  HandleLidSwitch=suspend
+  HandleLidSwitch=suspend-then-hibernate
+  HandleLidSwitchExternalPower=suspend
+  HandleLidSwitchDocked=ignore
   ```
+
 - Reduce holdoff timeout:
+
   ```ini
   HoldoffTimeoutSec=30s
+  ```
+
+- Setup Hibernation in `/etc/systemd/sleep.conf`:
+
+  ```ini
+  HibernateDelaySec=5400 # 1.5hours
+  HibernateOnACPower=no
   ```
 
 ---
 
 ## 5. Udev Rules
+
 - **Shared mount points** (`/etc/udev/rules.d/99-udisks2.rules`):
+
   ```text
   ENV{ID_FS_USAGE}=="filesystem|other|crypto", ENV{UDISKS_FILESYSTEM_SHARED}="1"
   ```
+
 - **Low battery hibernation** (`/etc/udev/rules.d/99-lowbat.rules`):
+
   ```text
   SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
   ```
+
 - **Backlight permissions** (`/etc/udev/rules.d/backlight.rules`):
+
   ```text
   ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video $sys$devpath/brightness", RUN+="/bin/chmod g+w $sys$devpath/brightness"
   ```
@@ -89,7 +108,9 @@ Edit `/etc/systemd/logind.conf`:
 ---
 
 ## 6. ACPI Reboot Fix
+
 Edit `/etc/systemd/system.conf`:
-  ```ini
-  RebootWatchdogSec=0
-  ```
+
+```ini
+RebootWatchdogSec=0
+```
