@@ -184,7 +184,7 @@ MICROCODE=""
 [[ "$CPU_VENDOR" == "GenuineIntel" ]] && MICROCODE="/intel-ucode.img"
 [[ "$CPU_VENDOR" == "AuthenticAMD" ]] && MICROCODE="/amd-ucode.img"
 
-# Get `resume_offset`
+# Get resume_offset
 OFFSET=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)
 
 cat > /boot/loader/entries/arch.conf <<EOL
