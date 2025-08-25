@@ -8,21 +8,32 @@ This document lists post-install steps, configurations, and service setups to fi
 
 - Edit `/etc/mkinitcpio.d/linux.preset` to include UKI paths:
   ```ini
+  #default_image="/boot/initramfs-linux.img"
   default_uki="/boot/EFI/EFI/Linux/arch-linux.efi"
+  #fallback_image="/boot/initramfs-linux-fallback.img"
   fallback_uki="/boot/EFI/EFI/Linux/arch-linux-fallback.efi"
   ```
 - Create `/etc/cmdline.d/root.conf` with kernel parameters:
   ```text
-  cryptdevice=UUID=<PART2_UUID>:root:allow-discards root=/dev/mapper/root rootflags=subvol=@root rw net.ifnames=0 quiet nvme.noacpi=1 mem_sleep_default=deep resume=/dev/mapper/root resume_offset=<OFFSET>
+  cryptdevice=UUID=$(blkid --match-tag UUID --output value /dev/nvme0n1p2):root:allow-discards \
+  root=$(blkid --match-tag UUID --output value /dev/mapper/root) \
+  rootflags=subvol=@root rw net.ifnames=0 quiet mem_sleep_default=deep \
+  resume=$(blkid --match-tag UUID --output value /dev/mapper/root) \
+  resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)
   ```
 
 ---
 
 ## 2. AUR Helper (paru)
 
-- Install prerequisites
+- Install prerequisites:
   ```bash
   sudo pacmand --needed -S base-devel
+  ```
+- Edit `/etc/makepkg.conf` to speed up building:
+  ```bash
+  MAKEFLAGS="-j$(nproc)"
+  COMPRESSXZ=(xz -c -z - --threads=0)
   ```
 - Build and install **paru**:
   ```bash
