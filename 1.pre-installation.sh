@@ -4,14 +4,16 @@ set -euo pipefail
 IFS=$'\n\t'
 
 echo -e "\n----------------------------------------------------------------
-  This script installs Arch on BTRFS with UEFI and swapfile
+  This script installs Arch on BTRFS with UEFI, encryption, and swapfile.
   YOUR DRIVE WILL BE FORMATED AND DATA LOST
   Please make sure you know what you are doing because
-  after formating your disk there is no way to get data back
+  after formating your disk there is no way to get data back.
 ----------------------------------------------------------------"
 read -rp "Enter to continue <ctrl + c> to cancel:" </dev/tty
 
-# Verify the boot mode
+# -----------------------
+# Verify boot mode
+# -----------------------
 if [[ -d /sys/firmware/efi/efivars ]]; then
   echo "Boot mode UEFI"
 else
@@ -24,15 +26,22 @@ fi
 # -----------------------
 fdisk -l
 read -rp "Drive to install Arch on (e.g., sda or nvme0n1): " DISK
+[[ -b /dev/$DISK ]] || { echo "[ERROR] /dev/$DISK not found." exit 1; }
+
 read -rp "Swap size in GB: " SWAP_SIZE
 read -rp "Kernel (linux, linux-lts, linux-zen, linux-hardened): " KERNEL
+
+# Confirm before wiping
+read -rp "This will ERASE /dev/$DISK. Are you sure? (yes/[no]): " CONFIRM
+[[ "$CONFIRM" == "yes" ]] || { echo "Aborted."; exit 1; }
 
 # -----------------------
 # Partitioning
 # -----------------------
+echo "[INFO] Partitioning disk..."
 parted -s /dev/"$DISK" mklabel gpt
 parted -s /dev/"$DISK" mkpart ESP fat32 1MiB 1025MiB
-parted -s /dev/"$DISK" set 1 boot on
+parted -s /dev/"$DISK" set 1 esp on
 parted -s /dev/"$DISK" mkpart primary 1025MiB 100%
 
 # NVME vs SSD/HDD
@@ -47,6 +56,7 @@ fi
 # -----------------------
 # Encrypt root
 # -----------------------
+echo "[INFO] Setting up LUKS encryption..."
 cryptsetup luksFormat /dev/"$PART2"
 cryptsetup open /dev/"$PART2" root
 
@@ -71,7 +81,7 @@ umount /mnt
 # -----------------------
 mount_opts="relatime,compress=zstd:3,ssd,space_cache=v2"
 mount -o $mount_opts,subvol=@root /dev/mapper/root /mnt
-mkdir -p {boot/EFI,var/cache/pacman/pkg,var/log,home,swap,.snapshots,srv,efi}
+mkdir -p {boot/EFI,var/cache,var/log,home,swap,.snapshots,srv}
 
 declare -A mounts=(
   [@boot]=/mnt/boot
@@ -92,12 +102,13 @@ mount /dev/"$PART1" /mnt/boot/EFI
 # -----------------------
 # Swapfile
 # -----------------------
+echo "[INFO] Creating swapfile..."
 btrfs filesystem mkswapfile --size "${SWAP_SIZE}"G clear /mnt/swap/swapfile
 chmod 600 /mnt/swap/swapfile
 swapon /mnt/swap/swapfile
 
 # -----------------------
-# Kernel and microcode
+# CPU microcode
 # -----------------------
 CPU_VENDOR=$(awk 'NR==1{print $3}' /proc/cpuinfo)
 [[ $CPU_VENDOR == "GenuineIntel" ]] && UCODE=intel-ucode
@@ -107,8 +118,9 @@ CPU_VENDOR=$(awk 'NR==1{print $3}' /proc/cpuinfo)
 # -----------------------
 # Install base system
 # -----------------------
-echo "Installing essential packages."
-pacstrap /mnt base "$KERNEL" linux-firmware "$UCODE" btrfs-progs networkmanager nvim man-db sudo
+echo "[INFO] Installing essential packages..."
+pacstrap /mnt base "$KERNEL" linux-firmware "$UCODE" \
+  btrfs-progs networkmanager nvim man-db sudo git
 
 # -----------------------
 # Fstab
