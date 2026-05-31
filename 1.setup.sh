@@ -93,7 +93,7 @@ for sv in "${!mounts[@]}"; do
   mount -o $MOUNT_OPTS,subvol="$sv" /dev/mapper/root "${MOUNT_MAP[$sv]}"
 done
 
-mount /dev/"$EFI_PART" /mnt/boot/efi
+mount -o fmask=0077,dmas=0077,nosuid,nodev,noexec /dev/"$EFI_PART" /mnt/boot/efi
 
 # -----------------------
 # Swapfile
