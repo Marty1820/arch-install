@@ -9,17 +9,16 @@
 
 # Arch Laptop Setup
 
-An Arch Linux installation script for my personal use.  
+An Arch Linux installation script for my personal use.
 This automates most of the base setup but assumes you know what you are doing.
 
 ---
 
 ## Features
 
-- **UEFI only** (BIOS may be supported in the future)
+- **UEFI only**
 - **BTRFS** with subvolumes for:
-  - `/boot`, `/home`, `/srv`, `/var/log`, `/var/cache`, `/tmp`, `/.snapshots`, `/swap`
-- **Swapfile** mounted at `/swap/swapfile`
+  - `/home`, `/srv`, `/var/log`, `/var/cache`, `/tmp`, `/.snapshots`
 
 ---
 
@@ -38,26 +37,28 @@ After booting the Arch ISO and connecting to the network:
    ```
 1. Edit the script to fit your needs:
    ```bash
-   nano install.sh
+   nano 1.setup.sh
    ```
 1. Make it executable and run:
    ```bash
-   chmod +x install.sh
-   ./install.sh
+   chmod +x 1.setup.sh
+   ./1.setup.sh
    ```
 
 ## Next steps
 
-After installation, see [`finishing_touches.md`](finishing_touches.md) for additional setup such as:
+After installation and configuration, login with user you created and run 3.finish.sh:
 
 - AUR helper (paru)
 - Extra services (TLP, Bluetooth, UFW, etc.)
 - Udev rules (backlight, battery, shared mounts)
 - System tweaks
 
+For security follow 4.Secure.md
+
 ---
 
 ## License
 
-This project is provided **as-is** for personal use.  
+This project is provided **as-is** for personal use.
 Feel free to fork and adapt, but there are **no guarantees of stability or support**.

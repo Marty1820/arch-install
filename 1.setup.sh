@@ -34,21 +34,20 @@ read -rp "This will ERASE /dev/$DISK. Type 'yes' to confirm: " CONFIRM
 # Partitioning
 # -----------------------
 echo "[INFO] Partitioning disk..."
-parted -s /dev/"$DISK" mklabel gpt
-parted -s /dev/"$DISK" mkpart ESP fat32 1MiB 1025MiB
-parted -s /dev/"$DISK" set 1 esp on
-parted -s /dev/"$DISK" mkpart root btrfs 1025MiB 51201MiB
-parted -s /dev/"$DISK" mkpart home ext4 51201MiB 100%
+sgdisk \
+  -n 1:0:1GiB -t 1:ef00 -c 1:EFI \
+  -n 2:0:"$SWAP_SIZE"GiB -t 2:8200 -c 2:SWAP \
+  -n 3:0:0 -t 3:8304 -c 3:ROOT /dev/"$DISK"
 
 # NVME vs SSD/HDD
 if [[ "${DISK}" =~ "nvme" ]]; then
   EFI_PART=${DISK}p1
-  ROOT_PART=${DISK}p2
-  HOME_PART=${DISK}p3
+  SWAP_PART=${DISK}p2
+  ROOT_PART=${DISK}p3
 else
   EFI_PART=${DISK}1
-  ROOT_PART=${DISK}2
-  HOME_PART=${DISK}3
+  SWAP_PART=${DISK}3
+  ROOT_PART=${DISK}3
 fi
 
 # -----------------------
@@ -61,9 +60,9 @@ cryptsetup open /dev/"$ROOT_PART" root
 # -----------------------
 # Format partitions
 # -----------------------
-mkfs.vfat -F32 -n "EFI" /dev/"$EFI_PART"
+mkfs.fat -F32 -n "EFI" /dev/"$EFI_PART"
+mkswap -L SWAP /dev/"$SWAP_PART"
 mkfs.btrfs -L ROOT /dev/mapper/root
-mkfs.ext4 -L HOME /dev/$HOME_PART
 
 # -----------------------
 # Create BTRFS subvolumes
@@ -78,9 +77,9 @@ umount /mnt
 # -----------------------
 # Mount subvolumes
 # -----------------------
-MOUNT_OPTS="default,noatime,compress=zstd:1,ssd"
+MOUNT_OPTS="default,noatime,compress=zstd:1,ssd,discard=async"
 mount -o $MOUNT_OPTS,subvol=@root /dev/mapper/root /mnt
-mkdir -p /mnt{boot/efi,srv,var/log,var/cache,tmp,.snapshots,swap,home}
+mkdir -p /mnt/{boot,srv,var/log,var/cache,tmp,.snapshots,home}
 
 declare -A MOUNT_MAP=(
   [@srv]=/mnt/srv
@@ -88,22 +87,18 @@ declare -A MOUNT_MAP=(
   [@var_cache]=/mnt/var/cache
   [@tmp]=/mnt/tmp
   [@snapshots]=/mnt/.snapshots
-  [@swap]=/mnt/swap
+  [@home]=/mnt/home
 )
 for sv in "${!mounts[@]}"; do
   mount -o $MOUNT_OPTS,subvol="$sv" /dev/mapper/root "${MOUNT_MAP[$sv]}"
 done
 
 mount /dev/"$EFI_PART" /mnt/boot/efi
-mount /dev/"$HOME_PART" /mnt/home
 
 # -----------------------
 # Swapfile
 # -----------------------
-echo "[INFO] Creating swapfile..."
-btrfs filesystem mkswapfile --size "${SWAP_SIZE}"G /mnt/swap/swapfile
-chmod 600 /mnt/swap/swapfile
-swapon /mnt/swap/swapfile
+swapon /dev/"$SWAP_PART"
 
 # -----------------------
 # CPU microcode

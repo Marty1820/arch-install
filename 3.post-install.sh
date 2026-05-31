@@ -206,7 +206,7 @@ echo "[INFO] Updating mirrorlist..."
 reflector --verbose --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
 
 # -----------------------
-# 11. Cleanup
+# Cleanup
 # -----------------------
 pacman -Sc --noconfirm
 

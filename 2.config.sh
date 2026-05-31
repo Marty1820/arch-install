@@ -44,24 +44,23 @@ echo "$HOSTNAME" >/etc/hostname
 
 # Enable NetworkManager
 systemctl enable NetworkManager
+systemctl disable NetworkManager-wait-online.service
 
 # -----------------------
 # Kernel & Initramfs (UKI Setup)
 # -----------------------
 sed -i 's/^HOOKS=.*/HOOKS=(base udev autodetect microcode kms block encrypt btrfs filesystems resume fsck)/' /etc/mkinitcpio.conf
-sed -i 's/^#COMPRESSION="lz4"=.*/COMPRESSION="cat"/' /etc/mkinitcpio.conf
+sed -i 's/^#COMPRESSION="zstd"=.*/COMPRESSION="zstd"/' /etc/mkinitcpio.conf
 
 
 cat > /etc/mkinitcpio.d/linux.preset << EOF
 ALL_kver="/boot/vmlinuz-linux"
-PRESETS=('default' 'fallback')
+PRESETS=('default')
 default_uki="/boot/efi/EFI/Linux/arch-linux.efi"
-fallback_uki="/boot/efi/EFI/Linux/arch-linux-fallback.efi"
-fallback_options="-S autodetect"
 EOF
 
 cat > /etc/cmdline.d/root.conf << EOL
-cryptdevice=/dev/nvme0n1p2:root root=/dev/mapper/root rootflags=subvol=@root,ssd,compress=zstd:1,rw,noatime resume=$(blkid --match-tag UUID --output value /dev/mapper/root) resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)
+rd.luks.name=$(blkid -s UUID -o /dev/disk/by-partlabel/root)=root root=/dev/mapper/root rootflags=space_cache=v2,discard=async,compress=zstd:1,rw,noatime quiet 8250.nr_uarts=0
 EOL
 
 # -----------------------
@@ -94,9 +93,7 @@ echo "root:$ROOTPW" | chpasswd
 pacman -Syu --noconfirm zsh sudo
 
 # User creation
-systemctl enable systemd-homed.service
-
-homectl create "$USERNAME" --home-dir=/home/"$USERNAME" --member-of=wheel,video,uucp,input --shell=/usr/bin/zsh --storage=luks --fs-type=ext4
+useradd -m --groups wheel,video --shell /usr/bin/zsh "$USERNAME"
 
 # Grant sudo access
 sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
