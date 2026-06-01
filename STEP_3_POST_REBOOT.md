@@ -2,9 +2,6 @@
 
 Welcome to your new Arch Linux system! This final phase completes the setup by installing your desktop environment and utilities, configuring the AUR helper, and performing the critical **Secure Boot** and **TPM 2.0** enrollment steps to unlock your disk automatically.
 
-> 💡 **Prerequisite**: Log in as the user you created in Step 2.
-> If you haven't logged in yet, do so now. The first login will initialize your encrypted home directory.
-
 ---
 
 ## 1. Install Packages
@@ -54,11 +51,11 @@ sudo sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 ## D. Reboot & Enable Secure Boot
 
-- 1. Reboot your system.
-- 2. Enter UEFI/BIOS settings.
-- 3. Change **Secure Boot** from "Setup Mode" to "**Enabled**" (or "User Mode").
-- 4. Save and reboot.
-- 5. Verify
+ 1. Reboot your system.
+ 2. Enter UEFI/BIOS settings.
+ 3. Change **Secure Boot** from "Setup Mode" to "**Enabled**" (or "User Mode").
+ 4. Save and reboot.
+ 5. Verify
     ```bash
     bootctl status
     ```
@@ -68,27 +65,21 @@ sudo sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 
-- 1. **Generate a Recovery Key** (Save this somewhere safe!):
+ 1. **Generate a Recovery Key** (Save this somewhere safe!):
     ```bash
     # Replace /dev/nvme0n1p3 with your actual root partition
     sudo systemd-cryptenroll /dev/nvme0n1p3 --recovery-key
     ```
     Copy the generated recovery key string and store it offline (e.g., on a USB drive or paper).
-- 2. **Bind TPM**: (Change the drive to your encrypted partition)
+ 2. **Bind TPM**: (Change the drive to your encrypted partition)
     ```bash
     systemd-cryptenroll /dev/nvme0n1p3 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+2+4+7:sha256
     ```
     Note: `0+2+4+7` measures BIOS, Boot Loader, and Kernel integrity. Adjust if needed.
-- 3. **Final Reboot**:
+ 3. **Final Reboot**:
     ```bash
     reboot
     ```
-
----
-
-## Success!
-
-On the next boot, if Secure Boot is enabled and the system integrity is intact, the disk should unlock automatically without prompting for a password.
 
 ---
 
@@ -226,3 +217,9 @@ sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo systemctl enable ufw.service
 ```
+
+---
+
+## Success!
+
+On the next boot, if Secure Boot is enabled and the system integrity is intact, the disk should unlock automatically without prompting for a password.

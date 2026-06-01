@@ -133,4 +133,4 @@ exit
 reboot
 ```
 
-# Continue to **[Step 3: Post-Reboot & Hardening](./STEP_3_POST_REBOOT.md)**
+> Continue to **[Step 3: Post-Reboot & Hardening](./STEP_3_POST_REBOOT.md)**

@@ -80,7 +80,7 @@ cryptsetup luksFormat --type luks2 "/dev/$ROOT_PART"
 cryptsetup open "/dev/$ROOT_PART" root
 ```
 
-    * Remember your LUKS passphrase! You'll need it at boot.
+* Remember your LUKS passphrase! You'll need it at boot.
 
 ---
 
@@ -179,4 +179,4 @@ Your base system is installed. The next step is to chroot into the new system an
 arch-chroot /mnt
 ```
 
-# Continue to **[Step 2: Chroot Configuration](./STEP_2_CHROOT.md)**
+> Continue to **[Step 2: Chroot Configuration](./STEP_2_CHROOT.md)**
