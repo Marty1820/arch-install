@@ -7,7 +7,7 @@ Welcome to your new Arch Linux system! This final phase completes the setup by i
 ## 1. Install Packages
 
 ```bash
-sudo pacman -Syu --needed --noconfirm 7zip awww base base-devel bat bc blueman brightnessctl btop cabextract dpkg efivar eza fastfetch fprintd framework-system fuzzel fwupd git gvfs intel-ucode jq kitty linux linux-firmware ly mako man-db man-pages neovim networkmanager niri nm-connection-editor npm nvme-cli playerctl python-requests rebuild-detector reflector rsync sbctl starship stow sudo swayidle swaylock syncthing thunar thunar-volman tldr tlp udisks2 ufw unace unrar unzip waybar wget wl-clipboard wlsunset xdg-utils zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting
+pacman -Syu --needed --noconfirm 7zip awww base base-devel bat bc blueman brightnessctl btop cabextract dpkg efivar eza fastfetch fprintd framework-system fuzzel fwupd git gvfs intel-ucode jq kitty linux linux-firmware ly mako man-db man-pages neovim networkmanager niri nm-connection-editor npm nvme-cli playerctl python-requests rebuild-detector reflector rsync sbctl starship stow sudo swayidle swaylock syncthing thunar thunar-volman tldr tlp udisks2 ufw unace unrar unzip waybar wget wl-clipboard wlsunset xdg-utils zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting
 ```
 
 ---
@@ -27,13 +27,13 @@ Look for `Secure Boot: disabled (setup mode).`
 
 ```bash
 # Create keys
-sudo sbctl create-keys
+sbctl create-keys
 
 # Enroll keys to firmware
-sudo sbctl enroll-keys -m -f
+sbctl enroll-keys -m -f
 
 # Verify what needs signing
-sudo sbctl verify
+sbctl verify
 ```
 
 ## C. Sign Files
@@ -42,8 +42,8 @@ Sign every file listed by `sbctl verify`.
 ```bash
 # Example: Sign the UKI and microcode
 # Replace the paths with the actual output from 'sbctl verify'
-sudo sbctl sign -s /boot/EFI/Linux/arch-linux.efi
-sudo sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
+sbctl sign -s /boot/EFI/Linux/arch-linux.efi
+sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 # Add more files if listed
 ```
 
@@ -68,7 +68,7 @@ Now that Secure Boot is active, we can bind the LUKS key to the TPM.
  1. **Generate a Recovery Key** (Save this somewhere safe!):
     ```bash
     # Replace /dev/nvme0n1p3 with your actual root partition
-    sudo systemd-cryptenroll /dev/nvme0n1p3 --recovery-key
+    systemd-cryptenroll /dev/nvme0n1p3 --recovery-key
     ```
     Copy the generated recovery key string and store it offline (e.g., on a USB drive or paper).
  2. **Bind TPM**: (Change the drive to your encrypted partition)
@@ -103,7 +103,7 @@ We need `base-devel` and `git` to build the AUR helper `paru`.
 
 ```bash
 # Install build tools
-sudo pacman -Sy --needed --noconfirm base-devel git
+pacman -Sy --needed --noconfirm base-devel git
 
 # Clone and build paru
 TEMP_DIR=$(mktemp -d)
@@ -125,15 +125,15 @@ Setup automatic snapshots for the root (`@root`) and home (`@home`) subvolumes.
 
 ```bash
 # Root snapshot config
-sudo snapper -c root create-config /
+snapper -c root create-config /
 
 # Home snapshot config
-sudo snapper -c home create-config /home
+snapper -c home create-config /home
 
 # Enable cleanup timers
-sudo systemctl enable snapper-cleanup.timer
-sudo systemctl enable snapper-backup.timer
-sudo systemctl enable snapper-timeline.timer
+systemctl enable snapper-cleanup.timer
+systemctl enable snapper-backup.timer
+systemctl enable snapper-timeline.timer
 ```
 
 ---
@@ -144,7 +144,7 @@ Configure `systemd` for suspend/hibernate behavior.
 
 ```bash
 # Configure logind
-sudo tee -a /etc/systemd/logind.conf > /dev/null <<EOF
+tee -a /etc/systemd/logind.conf > /dev/null <<EOF
 [Login]
 HandleLidSwitch=suspend-then-hibernate
 HandleLidSwitchExternalPower=suspend
@@ -153,15 +153,15 @@ HoldoffTimeoutSec=30s
 EOF
 
 # Configure sleep
-sudo tee -a /etc/systemd/sleep.conf > /dev/null <<EOF
+tee -a /etc/systemd/sleep.conf > /dev/null <<EOF
 [Sleep]
 HibernateDelaySec=1h
 HibernateOnACPower=no
 EOF
 
 # Mask rfkill (required for TLP)
-sudo systemctl mask systemd-rfkill.service
-sudo systemctl mask systemd-rfkill.socket
+systemctl mask systemd-rfkill.service
+systemctl mask systemd-rfkill.socket
 ```
 
 ---
@@ -172,22 +172,22 @@ Create rules for low-battery hibernation, backlight permissions, and shared moun
 
 ```bash
 # Low battery hibernation
-sudo tee /etc/udev/rules.d/80-lowbat.rules > /dev/null <<EOF
+tee /etc/udev/rules.d/80-lowbat.rules > /dev/null <<EOF
 SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOF
 
 # Backlight permissions
-sudo tee /etc/udev/rules.d/90-backlight.rules > /dev/null <<EOF
+tee /etc/udev/rules.d/90-backlight.rules > /dev/null <<EOF
 ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video \$sys\$devpath/brightness", RUN+="/bin/chmod g+w \$sys\$devpath/brightness"
 EOF
 
 # Shared mount points (for removable drives)
-sudo tee /etc/udev/rules.d/99-udisks2.rules > /dev/null <<EOF
+tee /etc/udev/rules.d/99-udisks2.rules > /dev/null <<EOF
 ENV{ID_FS_USAGE}=="filesystem|other|crypto", ENV{UDISKS_FILESYSTEM_SHARED}="1"
 EOF
 
 # Reload rules
-sudo udevadm control --reload-rules
+udevadm control --reload-rules
 ```
 
 ---
@@ -198,28 +198,43 @@ Enable all necessary background services.
 
 ```bash
 # Services
-sudo systemctl enable ly@tty1.service
-sudo systemctl enable NetworkManager.service
-sudo systemctl enable bluetooth.service
-sudo systemctl enable systemd-timesyncd.service
-sudo systemctl enable udisks2.service
-sudo systemctl enable fprintd.service
-sudo systemctl enable tlp.service
+systemctl enable ly@tty1.service
+systemctl enable NetworkManager.service
+systemctl enable bluetooth.service
+systemctl enable systemd-timesyncd.service
+systemctl enable udisks2.service
+systemctl enable fprintd.service
+systemctl enable tlp.service
+
 
 # Timers
-sudo systemctl enable fstrim.timer
-sudo systemctl enable reflector.timer
-sudo systemctl enable fwupd-refresh.timer
-sudo systemctl enable paccache.timer
+systemctl enable fstrim.timer
+systemctl enable reflector.timer
+systemctl enable fwupd-refresh.timer
+systemctl enable paccache.timer
 
 # Firewall
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo systemctl enable ufw.service
+ufw default deny incoming
+ufw default allow outgoing
+systemctl enable ufw.service
+```
+
+---
+
+## 9. User setup
+
+Create a user using systemd-homed
+
+```bash
+# Start the service
+systemctl enable systemd-homed.service
+
+# Create a user with homectl
+homectl create username --shell=/usr/bin/zsh --member-of=wheel,video,uucp --storage=luks
 ```
 
 ---
 
 ## Success!
 
-On the next boot, if Secure Boot is enabled and the system integrity is intact, the disk should unlock automatically without prompting for a password.
+On the next boot, if Secure Boot is enabled and the system integrity is intact, the disk should unlock automatically without prompting for a password. You can then log in with the user you created which will create the home directory.

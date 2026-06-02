@@ -11,7 +11,6 @@
 This guide automates the installation of a highly optimized Arch Linux system tailored for laptops. It moves away from traditional `fstab` mounting and legacy bootloaders in favor of modern `systemd` features:
 
 - **Unified Kernel Images (UKI)**: Kernels, initramfs, and cmdline bundled into a single EFI binary.
-- **systemd-homed**: Encrypted, portable user home directories managed by the system.
 - **BTRFS Subvolumes**: Efficient snapshotting and separation of `/`, `/home`, `/var`, etc.
 - **Secure Boot & TPM**: Full disk encryption unlocked automatically via TPM 2.0 with Secure Boot enforcement.
 
@@ -21,7 +20,7 @@ The process is split into four distinct phases to ensure clarity and safety:
 
 1.  **Prerequisites**: BIOS/UEFI configuration (Secure Boot Setup Mode, NVMe optimization).
 2.  **Phase 1 (Pre-Chroot)**: Partitioning, LUKS encryption, BTRFS setup, and base system installation.
-3.  **Phase 2 (Chroot)**: System configuration, UKI generation, user creation, and bootloader setup.
+3.  **Phase 2 (Chroot)**: System configuration, UKI generation, and bootloader setup.
 4.  **Phase 3 (Post-Reboot)**: User environment setup, AUR helper, services, and final Secure Boot/TPM enrollment.
 
 ---
