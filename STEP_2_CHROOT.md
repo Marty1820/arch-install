@@ -114,13 +114,10 @@ Verify the configuration before exiting.
 
 ```bash
 # Check UKI
-ls /boot/efi/EFI/Linux/
+ls /boot/EFI/Linux/
 
 # Check fstab
 cat /etc/fstab
-
-# Check services
-systemctl list-unit-files | grep NetworkManager
 ```
 
 ## Phase 2 Complete

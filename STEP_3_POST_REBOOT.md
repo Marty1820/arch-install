@@ -7,7 +7,16 @@ Welcome to your new Arch Linux system! This final phase completes the setup by i
 ## 1. Install Packages
 
 ```bash
-pacman -Syu --needed --noconfirm 7zip awww base base-devel bat bc blueman brightnessctl btop cabextract dpkg efivar eza fastfetch fprintd framework-system fuzzel fwupd git gvfs intel-ucode jq kitty linux linux-firmware ly mako man-db man-pages neovim networkmanager niri nm-connection-editor npm nvme-cli playerctl python-requests rebuild-detector reflector rsync sbctl starship stow sudo swayidle swaylock syncthing thunar thunar-volman tldr tlp udisks2 ufw unace unrar unzip waybar wget wl-clipboard wlsunset xdg-utils zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting
+pacman -Syu --needed --noconfirm \
+    7zip awww base base-devel bat bc blueman brightnessctl btop \
+    cabextract dpkg efivar eza fastfetch fprintd framework-system \
+    fuzzel fwupd git gvfs intel-ucode jq kitty linux linux-firmware \
+    ly mako man-db man-pages neovim networkmanager niri \
+    nm-connection-editor npm nvme-cli playerctl python-requests \
+    rebuild-detector reflector rsync sbctl starship stow sudo \
+    swayidle swaylock syncthing thunar thunar-volman tldr tlp udisks2 \
+    ufw unace unrar unzip waybar wget wl-clipboard wlsunset xdg-utils \
+    zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting
 ```
 
 ---

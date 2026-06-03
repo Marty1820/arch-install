@@ -11,13 +11,10 @@ This phase prepares the disk, sets up encryption, creates the BTRFS filesystem w
 Ensure you're booted in UEFI mode (required for Secure Boot and UKIs).
 
 ```bash
-if [[ -d /sys/firmware/efi/efivars ]]; then
-    echo "[OK] UEFI mode detected"
-else
-    echo "[ERROR] Not booted in UEFI mode. Reboot with UEFI enabled."
-    exit 1
-fi
+ls /sys/firmware/efi/efivars
 ```
+
+If you get an output you are running in UEFI, if not it's BIOS.
 
 ---
 

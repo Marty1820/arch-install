@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide automates the installation of a highly optimized Arch Linux system tailored for laptops. It moves away from traditional `fstab` mounting and legacy bootloaders in favor of modern `systemd` features:
+This guide automates the installation of a highly optimized Arch Linux system tailored for laptops.
 
 - **Unified Kernel Images (UKI)**: Kernels, initramfs, and cmdline bundled into a single EFI binary.
 - **BTRFS Subvolumes**: Efficient snapshotting and separation of `/`, `/home`, `/var`, etc.
@@ -65,11 +65,7 @@ For optimal performance on modern NVMe drives, ensure the logical block size is 
     iwctl station wlan0 connect "YOUR_SSID"
     # Or use ethernet
     ```
-3.  Update the system clock:
-    ```bash
-    timedatectl set-ntp true
-    ```
-4.  Install `git` to clone this guide (or copy-paste the commands manually):
+3.  Install `git` to clone this guide (or copy-paste the commands manually):
     ```bash
     pacman -Sy git
     ```
@@ -89,10 +85,10 @@ Proceed to the next file when ready:
 2.  **[Step 2: Chroot Configuration](./STEP_2_CHROOT.md)**
     *   Timezone & Locale
     *   UKI Generation (`mkinitcpio` + `systemd-boot`)
-    *   `systemd-homed` User Creation
     *   Bootloader installation
 
 3.  **[Step 3: Post-Reboot & Hardening](./STEP_3_POST_REBOOT.md)**
+    *   `systemd-homed` User Creation
     *   Desktop Environment & Utilities
     *   AUR Helper (`paru`)
     *   Secure Boot Signing (`sbctl`)
