@@ -96,9 +96,13 @@ Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 
 Optimize package manager and compilation settings.
 ```bash
-# Enable colors and verbose lists
+# Enable Hooks, Colors, and Verbose Package Lists
+sed -i 's/^#HookDir/HookDir/' /etc/pacman.conf
 sed -i 's/^#Color/Color/' /etc/pacman.conf
 sed -i 's/^#VerbosePkgLists/VerbosePkgLists/' /etc/pacman.conf
+
+# Make Hooks directory
+mkdir -p /etc/pacman.d/hooks
 
 # Set compiler flags for parallel builds
 sed -i "s/^#MAKEFLAGS=.*/MAKEFLAGS=\"-j$(nproc)\"/" /etc/makepkg.conf
@@ -180,19 +184,30 @@ systemctl mask systemd-rfkill.socket
 Create rules for low-battery hibernation, backlight permissions, and shared mounts.
 
 ```bash
-# Low battery hibernation
-tee /etc/udev/rules.d/80-lowbat.rules > /dev/null <<EOF
+tee /etc/udev/rules.d/60-lowbat.rules > /dev/null <<EOF
+# Hibernate system when battery gets below 5%
+# /etc/udev/rules.d/60-lowbat.rules
 SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOF
 
-# Backlight permissions
-tee /etc/udev/rules.d/90-backlight.rules > /dev/null <<EOF
-ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video \$sys\$devpath/brightness", RUN+="/bin/chmod g+w \$sys\$devpath/brightness"
+tee /etc/udev/rules.d/90-udisks2.rules > /dev/null <<EOF
+# Shared mount points (for removable drives)
+# /etc/udev/rules.d/90-udisks2.rules
+ENV{ID_FS_USAGE}=="filesystem|other|crypto", ENV{UDISKS_FILESYSTEM_SHARED}="1"
 EOF
 
-# Shared mount points (for removable drives)
-tee /etc/udev/rules.d/99-udisks2.rules > /dev/null <<EOF
-ENV{ID_FS_USAGE}=="filesystem|other|crypto", ENV{UDISKS_FILESYSTEM_SHARED}="1"
+tee /etc/udev/rules.d/99-backlight.rules > /dev/null <<EOF
+# Enable video group to control backlight permissions
+# /etc/udev/rules.d/99-backlight.rules
+ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/usr/bin/chgrp video /sys/class/backlight/intel_backlight/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/usr/bin/chmod g+w /sys/class/backlight/intel_backlight/brightness"
+EOF
+
+tee /etc/udev/rules.d/99-mac-superdrive.rules > /dev/null <<EOF
+# Apple SuperDrive initialization rule
+# /etc/udev/rules.d/99-mac-superdrive.rules
+# See: https://gist.github.com/yookoala/818c1ff057e3d965980b7fd3bf8f77a6
+ACTION=="add", ATTRS{idProduct}=="1500", ATTRS{idVendor}=="05ac", DRIVERS=="usb", RUN+="/usr/bin/sg_raw --cmdset=1 %r/sr%n EA 00 00 00 00 00 01"
 EOF
 
 # Reload rules
