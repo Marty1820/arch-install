@@ -247,6 +247,12 @@ systemctl enable ufw.service
 
 ## 9. User setup
 
+Enable wheeel group sudo access
+
+```bash
+sed -i 's/^# %wheel/%wheel/' /etc/sudoers
+```
+
 Create a user using systemd-homed
 
 ```bash
@@ -255,6 +261,12 @@ systemctl enable systemd-homed.service
 
 # Create a user with homectl
 homectl create username --shell=/usr/bin/zsh --member-of=wheel,video,uucp --storage=luks
+```
+
+After login verify user can run sudo then for security lock out root account
+
+```bash
+sudo passwd -l root
 ```
 
 ---
