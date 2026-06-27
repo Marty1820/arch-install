@@ -8,15 +8,87 @@ Welcome to your new Arch Linux system! This final phase completes the setup by i
 
 ```bash
 pacman -Syu --needed --noconfirm \
-    7zip awww base base-devel bat bc blueman brightnessctl btop \
-    cabextract dpkg efivar eza fastfetch fprintd framework-system \
-    fuzzel fwupd git gvfs intel-ucode jq kitty linux linux-firmware \
-    ly mako man-db man-pages neovim networkmanager niri \
-    nm-connection-editor npm nvme-cli playerctl python-requests \
-    rebuild-detector reflector rsync sbctl starship stow sudo \
-    swayidle swaylock syncthing thunar thunar-volman tldr tlp udisks2 \
-    ufw unace unrar unzip waybar wget wl-clipboard wlsunset xdg-utils \
-    zsh zsh-autosuggestions zsh-completions zsh-syntax-highlighting
+```
+
+Followed by the list below
+
+```text
+nerd-fonts
+
+7zip
+awww
+base
+base-devel
+bat
+bc
+blueman
+brightnessctl
+btop
+btrfs-progs
+cabextract
+dosfstools
+dpkg
+efivar
+exfat-utils
+eza
+fastfetch
+fprintd
+framework-system
+fuzzel
+fwupd
+git
+gtk4-layer-shell
+gvfs
+hypridle
+hyprlock
+intel-ucode
+jq
+kitty
+linux
+linux-firmware
+ly
+man-db
+man-pages
+neovim
+networkmanager
+niri
+nm-connection-editor
+npm
+ntfsprogs
+nvme-cli
+pipewire-pulse
+playerctl
+python-requests
+rebuild-detector
+reflector
+rsync
+sbctl
+sg3_utils
+snapper
+starship
+stow
+sudo
+syncthing
+thunar
+thunar-volman
+tldr
+tlp
+tlp-pd
+udisks2
+ufw
+unace
+unrar
+unzip
+upower
+wget
+wl-clipboard
+wlsunset
+xdg-utils
+xfsprogs
+zsh
+zsh-autosuggestions
+zsh-completions
+zsh-syntax-highlighting
 ```
 
 ---
@@ -130,6 +202,12 @@ rm -rf "$TEMP_DIR"
 paru --version
 ```
 
+Install Aur packages.
+
+```bash
+paru -Sy wayle-bin zen-browser-bin mpremote
+```
+
 ---
 
 ## 5. Configure Snapper (Snapshots)
@@ -199,13 +277,14 @@ EOF
 tee /etc/udev/rules.d/99-backlight.rules > /dev/null <<EOF
 # Enable video group to control backlight permissions
 # /etc/udev/rules.d/99-backlight.rules
-ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/usr/bin/chgrp video /sys/class/backlight/intel_backlight/brightness"
-ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/usr/bin/chmod g+w /sys/class/backlight/intel_backlight/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"
 EOF
 
 tee /etc/udev/rules.d/99-mac-superdrive.rules > /dev/null <<EOF
 # Apple SuperDrive initialization rule
 # /etc/udev/rules.d/99-mac-superdrive.rules
+# pacman -S sg3_utils
 # See: https://gist.github.com/yookoala/818c1ff057e3d965980b7fd3bf8f77a6
 ACTION=="add", ATTRS{idProduct}=="1500", ATTRS{idVendor}=="05ac", DRIVERS=="usb", RUN+="/usr/bin/sg_raw --cmdset=1 %r/sr%n EA 00 00 00 00 00 01"
 EOF
@@ -229,6 +308,7 @@ systemctl enable systemd-timesyncd.service
 systemctl enable udisks2.service
 systemctl enable fprintd.service
 systemctl enable tlp.service
+systemctl enable tlp-pd.service
 
 
 # Timers
@@ -260,7 +340,7 @@ Create a user using systemd-homed
 systemctl enable systemd-homed.service
 
 # Create a user with homectl
-homectl create username --shell=/usr/bin/zsh --member-of=wheel,video,uucp --storage=luks
+homectl create $USERNAME --shell=/usr/bin/zsh --member-of=wheel,video,uucp --storage=luks
 ```
 
 After login verify user can run sudo then for security lock out root account
