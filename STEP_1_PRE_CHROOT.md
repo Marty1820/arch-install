@@ -37,7 +37,6 @@ We will create three partitions:
 | Partition | Size | Type | Purpose |
 |:---|---|---|---:|
 | 1 | 1GiB | EF00 (EFI) | Bootloader & UKIs |
-| 2 | Variable | 8200 (Linux Swap) | Swap |
 | 3 | Rest | 8304 (Linux root(x86-64)) | Root filesystem |
 
 ### Execute Partitioning
@@ -50,11 +49,6 @@ n
 <Enter>
 +1G
 ef00
-n
-<Enter>
-<Enter>
-+"SWAP-SIZE"G
-8200
 n
 <Enter>
 <Enter>
@@ -87,9 +81,6 @@ cryptsetup open "/dev/$ROOT_PART" root
 # EFI partition (FAT32)
 mkfs.fat -F32 -n "EFI" "/dev/$EFI_PART"
 
-# Swap partition
-mkswap -L SWAP "/dev/$SWAP_PART"
-
 # Root partition (BTRFS)
 mkfs.btrfs -L ROOT "/dev/mapper/root"
 ```
@@ -112,6 +103,7 @@ btrfs subvolume create /mnt/@var_cache
 btrfs subvolume create /mnt/@tmp
 btrfs subvolume create /mnt/@snapshots
 btrfs subvolume create /mnt/@home
+btrfs subvolume create /mnt/@swap
 
 # Unmount root
 umount /mnt
@@ -125,29 +117,40 @@ Mount all the subvolumes with optimized options.
 
 ```bash
 # Mount root subvolume
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@root /dev/mapper/root /mnt
-
-# Create mount point directories
-mkdir -p /mnt/{boot,srv,var/log,var/cache,tmp,.snapshots,home}
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@root /dev/mapper/root /mnt
 
 # Mount other subvolumes
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@srv /dev/mapper/root /mnt/srv
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@var_log /dev/mapper/root /mnt/var/log
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@var_cache /dev/mapper/root /mnt/var/cache
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@tmp /dev/mapper/root /mnt/tmp
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@snapshots /dev/mapper/root /mnt/.snapshots
-mount -o defaults,noatime,compress=zstd:1,ssd,discard=async,subvol=@home /dev/mapper/root /mnt/home
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@srv --mkdir /dev/mapper/root /mnt/srv
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@var_log --mkdir /dev/mapper/root /mnt/var/log
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@var_cache --mkdir /dev/mapper/root /mnt/var/cache
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@tmp --mkdir /dev/mapper/root /mnt/tmp
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@snapshots --mkdir /dev/mapper/root /mnt/.snapshots
+mount -o defaults,noatime,commit=60,compress=zstd,subvol=@home --mkdir /dev/mapper/root /mnt/home
+mount -o subvol=@swap --mkdir /dev/mapper/root /mnt/swap
 
 # Mount EFI partition
 mount -o fmask=0077,dmask=0077,nosuid,nodev,noexec /dev/$EFI_PART /boot
-
-# Activate swap
-swapon /dev/$SWAP_PART
 ```
 
 ---
 
-## 8. Install Base System
+## 8. Setup SWAP file
+
+Create the swap file
+
+```bash
+btrfs filesystem mkswapfile --size 16g /swap/swapfile
+```
+
+Activate the swap file
+
+```bash
+swapon /mnt/swap/swapfile
+```
+
+---
+
+## 9. Install Base System
 
 Install the core packages needed for a functional system.
 
@@ -157,7 +160,7 @@ pacstrap -K /mnt base linux linux-firmware btrfs-progs networkmanager neovim sbc
 
 ---
 
-## 9. Generate fstab
+## 10. Generate fstab
 
 Create the filesystem table for the installed system.
 

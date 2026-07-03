@@ -26,6 +26,7 @@ brightnessctl
 btop
 btrfs-progs
 cabextract
+chromium
 dosfstools
 dpkg
 efivar
@@ -64,7 +65,6 @@ reflector
 rsync
 sbctl
 sg3_utils
-snapper
 starship
 stow
 sudo
@@ -95,16 +95,17 @@ zsh-syntax-highlighting
 
 ## 2. Secure Boot & TPM Integration (Critical)
 
-## A. Verify Setup Mode
+### A. Verify Setup Mode
 
 Ensure your system is still in **Setup Mode** (keys cleared).
+
 ```bash
 bootctl status
 ```
 
 Look for `Secure Boot: disabled (setup mode).`
 
-## B. Generate & Enroll Keys
+### B. Generate & Enroll Keys
 
 ```bash
 # Create keys
@@ -117,9 +118,10 @@ sbctl enroll-keys -m -f
 sbctl verify
 ```
 
-## C. Sign Files
+### C. Sign Files
 
 Sign every file listed by `sbctl verify`.
+
 ```bash
 # Example: Sign the UKI and microcode
 # Replace the paths with the actual output from 'sbctl verify'
@@ -130,7 +132,7 @@ sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 - Repeat `sbctl verify` and `sbctl sign` until no unsigned files remain.
 
-## D. Reboot & Enable Secure Boot
+### D. Reboot & Enable Secure Boot
 
  1. Reboot your system.
  2. Enter UEFI/BIOS settings.
@@ -142,7 +144,7 @@ sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
     ```
     It should now say `Secure Boot: enabled (user)`.
 
-## E. Enroll TPM 2.0 for Disk Unlock
+### E. Enroll TPM 2.0 for Disk Unlock
 
 Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 
@@ -152,11 +154,13 @@ Now that Secure Boot is active, we can bind the LUKS key to the TPM.
     systemd-cryptenroll /dev/nvme0n1p3 --recovery-key
     ```
     Copy the generated recovery key string and store it offline (e.g., on a USB drive or paper).
+
  2. **Bind TPM**: (Change the drive to your encrypted partition)
     ```bash
     systemd-cryptenroll /dev/nvme0n1p3 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+2+4+7:sha256
     ```
     Note: `0+2+4+7` measures BIOS, Boot Loader, and Kernel integrity. Adjust if needed.
+
  3. **Final Reboot**:
     ```bash
     reboot
@@ -167,6 +171,7 @@ Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 ## 3. Pacman & Makepkg Optimization
 
 Optimize package manager and compilation settings.
+
 ```bash
 # Enable Hooks, Colors, and Verbose Package Lists
 sed -i 's/^#HookDir/HookDir/' /etc/pacman.conf
@@ -262,31 +267,33 @@ systemctl mask systemd-rfkill.socket
 Create rules for low-battery hibernation, backlight permissions, and shared mounts.
 
 ```bash
-tee /etc/udev/rules.d/60-lowbat.rules > /dev/null <<EOF
-# Hibernate system when battery gets below 5%
-# /etc/udev/rules.d/60-lowbat.rules
-SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
+tee /etc/udev/rules.d/60-backlight-permissions.rules > /dev/null <<EOF
+# Enable video group to control backlight permissions
+# /etc/udev/rules.d/60-backlight-permissions.rules
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", RUN+="/bin/chgrp video /sys/class/leds/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", RUN+="/bin/chmod g+w /sys/class/leds/%k/brightness"
 EOF
 
-tee /etc/udev/rules.d/90-udisks2.rules > /dev/null <<EOF
-# Shared mount points (for removable drives)
-# /etc/udev/rules.d/90-udisks2.rules
+tee /etc/udev/rules.d/80-udisks.rules > /dev/null <<EOF
+# Setup shared mount points
+# /etc/udev/rules.d/80-udisks.rules
 ENV{ID_FS_USAGE}=="filesystem|other|crypto", ENV{UDISKS_FILESYSTEM_SHARED}="1"
 EOF
 
-tee /etc/udev/rules.d/99-backlight.rules > /dev/null <<EOF
-# Enable video group to control backlight permissions
-# /etc/udev/rules.d/99-backlight.rules
-ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"
-ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"
-EOF
-
-tee /etc/udev/rules.d/99-mac-superdrive.rules > /dev/null <<EOF
+tee /etc/udev/rules.d/85-mac-superdrive.rules > /dev/null <<EOF
 # Apple SuperDrive initialization rule
-# /etc/udev/rules.d/99-mac-superdrive.rules
+# /etc/udev/rules.d/85-mac-superdrive.rules
 # pacman -S sg3_utils
 # See: https://gist.github.com/yookoala/818c1ff057e3d965980b7fd3bf8f77a6
 ACTION=="add", ATTRS{idProduct}=="1500", ATTRS{idVendor}=="05ac", DRIVERS=="usb", RUN+="/usr/bin/sg_raw --cmdset=1 %r/sr%n EA 00 00 00 00 00 01"
+EOF
+
+tee /etc/udev/rules.d/99-battery-hibernation.rules > /dev/null <<EOF
+# Hibernate system when battery gets below 5%
+# /etc/udev/rules.d/99-battery-hibernation.rules
+SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-5]", RUN+="/usr/bin/systemctl hibernate"
 EOF
 
 # Reload rules
