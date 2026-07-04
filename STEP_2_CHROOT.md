@@ -95,10 +95,10 @@ EOF
 Create a dedicated cmdline file for the UKI.
 
 ```bash
-UUID_ROOT=$(blkid -s UUID -o value /dev/{ENCRYPTED_ROOT_PARTITION})
+UUID_ROOT=$(blkid -s UUID -o value /dev/nvme0n1p2)
 
 cat > /etc/cmdline.d/root.conf <<EOF
-rd.luks.name=${UUID_ROOT}=root root=/dev/mapper/root rootflags=rw,noatime,discard quiet 8250.nr_uarts=0
+rd.luks.name=${UUID_ROOT}=root rd.luks.options=discard root=/dev/mapper/root rootflags=rw,noatime,discard quiet 8250.nr_uarts=0
 EOF
 ```
 
