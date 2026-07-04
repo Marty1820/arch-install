@@ -75,7 +75,7 @@ cat > /etc/mkinitcpio.conf <<EOF
 MODULES=()
 BINARIES=()
 FILES=()
-HOOKS=(base microcode systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt btrfs filesystems)
+HOOKS=(base microcode systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt filesystems)
 COMPRESSION="zstd"
 EOF
 ```
@@ -95,11 +95,21 @@ EOF
 Create a dedicated cmdline file for the UKI.
 
 ```bash
-UUID_ROOT=$(blkid -s UUID -o value /dev/mapper/root)
+UUID_ROOT=$(blkid -s UUID -o value /dev/{ENCRYPTED_ROOT_PARTITION})
 
 cat > /etc/cmdline.d/root.conf <<EOF
-rd.luks.name=${UUID_ROOT}=root root=/dev/mapper/root rootflags=subvol=@root,noatime,commit=60,compress=zstd,rw quiet 8250.nr_uarts=0
+rd.luks.name=${UUID_ROOT}=root root=/dev/mapper/root rootflags=rw,noatime,discard quiet 8250.nr_uarts=0
 EOF
+```
+
+---
+
+## 5. Bootloader Installation
+
+Install `systemd-boot` to the EFI partition.
+
+```bash
+bootctl install
 ```
 
 ### Generate UKI
@@ -107,16 +117,6 @@ Build the initramfs and the Unified Kernel Image.
 
 ```bash
 mkinitcpio -P
-```
-
----
-
-## 5. Bootloader Installation
-
-Install `systemd-boot` to the EFI partition. It will automatically detect the UKI we just created.
-
-```bash
-bootctl install
 ```
 
 ---

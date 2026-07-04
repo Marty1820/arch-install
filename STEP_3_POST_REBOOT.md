@@ -215,26 +215,7 @@ paru -Sy wayle-bin zen-browser-bin mpremote
 
 ---
 
-## 5. Configure Snapper (Snapshots)
-
-Setup automatic snapshots for the root (`@root`) and home (`@home`) subvolumes.
-
-```bash
-# Root snapshot config
-snapper -c root create-config /
-
-# Home snapshot config
-snapper -c home create-config /home
-
-# Enable cleanup timers
-systemctl enable snapper-cleanup.timer
-systemctl enable snapper-backup.timer
-systemctl enable snapper-timeline.timer
-```
-
----
-
-## 6. Laptop Power Management
+## 5. Laptop Power Management
 
 Configure `systemd` for suspend/hibernate behavior.
 
@@ -262,7 +243,7 @@ systemctl mask systemd-rfkill.socket
 
 ---
 
-## 7. Udev Rules
+## 6. Udev Rules
 
 Create rules for low-battery hibernation, backlight permissions, and shared mounts.
 
@@ -302,7 +283,7 @@ udevadm control --reload-rules
 
 ---
 
-## 8. Enable System Services
+## 7. Enable System Services
 
 Enable all necessary background services.
 
@@ -327,12 +308,13 @@ systemctl enable paccache.timer
 # Firewall
 ufw default deny incoming
 ufw default allow outgoing
+ufw enable
 systemctl enable ufw.service
 ```
 
 ---
 
-## 9. User setup
+## 8. User setup
 
 Enable wheeel group sudo access
 

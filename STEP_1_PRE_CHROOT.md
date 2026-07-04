@@ -79,73 +79,40 @@ cryptsetup open "/dev/$ROOT_PART" root
 
 ```bash
 # EFI partition (FAT32)
-mkfs.fat -F32 -n "EFI" "/dev/$EFI_PART"
+mkfs.fat -F 32 -n "EFI" "/dev/$EFI_PART"
 
 # Root partition (BTRFS)
-mkfs.btrfs -L ROOT "/dev/mapper/root"
+mkfs.ext4 -L ROOT "/dev/mapper/root"
 ```
 
 ---
 
-## 6. Create BTRFS Subvolumes
+## 6. Mount Partitions
 
-BTRFS subvolumes allow for efficient snapshots and separation of system directories.
-
-```bash
-# Mount root temporarily
-mount /dev/mapper/root /mnt
-
-# Create subvolumes
-btrfs subvolume create /mnt/@root
-btrfs subvolume create /mnt/@srv
-btrfs subvolume create /mnt/@var_log
-btrfs subvolume create /mnt/@var_cache
-btrfs subvolume create /mnt/@tmp
-btrfs subvolume create /mnt/@snapshots
-btrfs subvolume create /mnt/@home
-btrfs subvolume create /mnt/@swap
-
-# Unmount root
-umount /mnt
-```
-
----
-
-## 7. Mount Subvolumes
-
-Mount all the subvolumes with optimized options.
+Mount all partitions with optimized options.
 
 ```bash
-# Mount root subvolume
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@root /dev/mapper/root /mnt
-
-# Mount other subvolumes
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@srv --mkdir /dev/mapper/root /mnt/srv
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@var_log --mkdir /dev/mapper/root /mnt/var/log
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@var_cache --mkdir /dev/mapper/root /mnt/var/cache
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@tmp --mkdir /dev/mapper/root /mnt/tmp
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@snapshots --mkdir /dev/mapper/root /mnt/.snapshots
-mount -o defaults,noatime,commit=60,compress=zstd,subvol=@home --mkdir /dev/mapper/root /mnt/home
-mount -o subvol=@swap --mkdir /dev/mapper/root /mnt/swap
+# Mount root partition
+mount -o defaults,noatime /dev/mapper/root /mnt
 
 # Mount EFI partition
-mount -o fmask=0077,dmask=0077,nosuid,nodev,noexec /dev/$EFI_PART /boot
+mount -o fmask=0077,dmask=0077,nosuid,nodev,noexec --mkdir /dev/$EFI_PART /mnt/boot
 ```
 
 ---
 
-## 8. Setup SWAP file
+## 7. Setup SWAP file
 
 Create the swap file
 
 ```bash
-btrfs filesystem mkswapfile --size 16g /swap/swapfile
+mkswap -U clear --size 16g --file /mnt/swapfile
 ```
 
 Activate the swap file
 
 ```bash
-swapon /mnt/swap/swapfile
+swapon /mnt/swapfile
 ```
 
 ---
@@ -155,7 +122,7 @@ swapon /mnt/swap/swapfile
 Install the core packages needed for a functional system.
 
 ```bash
-pacstrap -K /mnt base linux linux-firmware btrfs-progs networkmanager neovim sbctl
+pacstrap -K /mnt base linux linux-firmware networkmanager neovim
 ```
 
 ---
