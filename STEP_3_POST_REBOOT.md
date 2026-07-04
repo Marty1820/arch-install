@@ -148,20 +148,13 @@ sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 
- 1. **Generate a Recovery Key** (Save this somewhere safe!):
-    ```bash
-    # Replace /dev/nvme0n1p2 with your actual root partition
-    systemd-cryptenroll /dev/nvme0n1p2 --recovery-key
-    ```
-    Copy the generated recovery key string and store it offline (e.g., on a USB drive or paper).
-
- 2. **Bind TPM**: (Change the drive to your encrypted partition)
+ 1. **Bind TPM**: (Change the drive to your encrypted partition)
     ```bash
     systemd-cryptenroll /dev/nvme0n1p2 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+2+4+7:sha256
     ```
     Note: `0+2+4+7` measures BIOS, Boot Loader, and Kernel integrity. Adjust if needed.
 
- 3. **Final Reboot**:
+ 2. **Final Reboot**:
     ```bash
     reboot
     ```
