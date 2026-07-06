@@ -211,7 +211,7 @@ paru --version
 Install Aur packages.
 
 ```bash
-paru -Sy wayle-bin zen-browser-bin mpremote
+paru -Sy ashell mpremote zen-browser-bin
 ```
 
 ---
