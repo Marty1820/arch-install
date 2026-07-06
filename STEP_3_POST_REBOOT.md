@@ -27,6 +27,7 @@ btop
 btrfs-progs
 cabextract
 chromium
+cosmic-files
 dosfstools
 dpkg
 efivar
@@ -42,9 +43,11 @@ gtk4-layer-shell
 gvfs
 hypridle
 hyprlock
+hyprpolkitagent
 intel-ucode
 jq
 kitty
+libnotify
 linux
 linux-firmware
 ly
@@ -69,8 +72,6 @@ starship
 stow
 sudo
 syncthing
-thunar
-thunar-volman
 tldr
 tlp
 tlp-pd
@@ -80,9 +81,11 @@ unace
 unrar
 unzip
 upower
+vulkan-intel
 wget
 wl-clipboard
 wlsunset
+xdg-user-dirs
 xdg-utils
 xfsprogs
 zsh
@@ -103,7 +106,7 @@ Ensure your system is still in **Setup Mode** (keys cleared).
 bootctl status
 ```
 
-Look for `Secure Boot: disabled (setup mode).`
+Look for `Secure Boot: disabled (setup)`.
 
 ### B. Generate & Enroll Keys
 
@@ -296,12 +299,11 @@ systemctl enable fprintd.service
 systemctl enable tlp.service
 systemctl enable tlp-pd.service
 
-
 # Timers
 systemctl enable fstrim.timer
-systemctl enable reflector.timer
 systemctl enable fwupd-refresh.timer
 systemctl enable paccache.timer
+systemctl enable reflector.timer
 
 # Firewall
 ufw default deny incoming
@@ -334,6 +336,24 @@ After login verify user can run sudo then for security lock out root account
 
 ```bash
 sudo passwd -l root
+```
+
+---
+
+## 9. Fingerprint reader
+
+Register your fingerprint
+
+```bash
+fprintd-enroll $USER -f right-index-finger
+```
+
+Edit PAM modules in `/etc/pamd/` or `/usr/lib/pam.d/` by adding the following line.
+
+```bash
+#%PAM-1.0
+auth  sufficient  pam_fprintd.so
+# rest of existing config
 ```
 
 ---
