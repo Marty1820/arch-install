@@ -152,7 +152,12 @@ Now that Secure Boot is active, we can bind the LUKS key to the TPM.
     ```bash
     systemd-cryptenroll /dev/nvme0n1p2 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+2+4+7:sha256
     ```
-    Note: `0+2+4+7` measures BIOS, Boot Loader, and Kernel integrity. Adjust if needed.
+    * If the command fails, run it without `--wipe-slot=tpm2`
+    Note: PCR measures
+    - 0: UEFI firmware Code and Settings
+    - 2: UEFI GPT Partition table
+    - 4: Bootloader & Boot config
+    - 7: Secure Boot state
 
  2. **Final Reboot**:
     ```bash
