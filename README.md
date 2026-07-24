@@ -1,6 +1,7 @@
 # Arch Linux Minimalist Setup Guide
 
 > ⚠️ **Warning**
+>
 > - This guide is for **advanced users** comfortable with the command line.
 > - It assumes a **UEFI-only** system with a single NVMe/SSD drive.
 > - **Data Loss Warning**: These steps will wipe the target drive. Backup your data first.
@@ -30,11 +31,13 @@ The process is split into four distinct phases to ensure clarity and safety:
 Before starting the installation, perform these critical hardware and firmware configurations.
 
 ### 1. Enable Secure Boot Setup Mode
+
 To sign kernels and initramfs later, your system must be in **Setup Mode**.
+
 1.  Reboot and enter your UEFI/BIOS settings.
 2.  Navigate to the **Secure Boot** section.
 3.  **Clear all existing keys** (PK, KEK, db, dbx).
-    *   *Note: This will put your system in "Setup Mode".*
+    - _Note: This will put your system in "Setup Mode"._
 4.  Save and exit.
 5.  Verify in the live ISO shell:
     ```bash
@@ -43,7 +46,9 @@ To sign kernels and initramfs later, your system must be in **Setup Mode**.
     Look for `Secure Boot: disabled (setup mode)`.
 
 ### 2. Optimize NVMe Logical Block Size
+
 For optimal performance on modern NVMe drives, ensure the logical block size is set to **4096 bytes** (4K) if supported by your drive.
+
 1.  Check current size:
     ```bash
     nvme id-ns -H /dev/nvme0n1 | grep "Relative Performance"
@@ -59,6 +64,7 @@ For optimal performance on modern NVMe drives, ensure the logical block size is 
     ```
 
 ### 3. Prepare the Live Environment
+
 1.  Boot the latest Arch Linux ISO.
 2.  Connect to the internet:
     ```bash
@@ -77,22 +83,22 @@ For optimal performance on modern NVMe drives, ensure the logical block size is 
 Proceed to the next file when ready:
 
 1.  **[Step 1: Partitioning & Base Install](./STEP_1_PRE_CHROOT.md)**
-    *   Partitioning (EFI, Swap, Root)
-    *   LUKS Encryption
-    *   BTRFS Subvolumes
-    *   `pacstrap` base system
+    - Partitioning (EFI, Swap, Root)
+    - LUKS Encryption
+    - BTRFS Subvolumes
+    - `pacstrap` base system
 
 2.  **[Step 2: Chroot Configuration](./STEP_2_CHROOT.md)**
-    *   Timezone & Locale
-    *   UKI Generation (`mkinitcpio` + `systemd-boot`)
-    *   Bootloader installation
+    - Timezone & Locale
+    - UKI Generation (`mkinitcpio` + `systemd-boot`)
+    - Bootloader installation
 
 3.  **[Step 3: Post-Reboot & Hardening](./STEP_3_POST_REBOOT.md)**
-    *   `systemd-homed` User Creation
-    *   Desktop Environment & Utilities
-    *   AUR Helper (`paru`)
-    *   Secure Boot Signing (`sbctl`)
-    *   TPM 2.0 Enrollment (`systemd-cryptenroll`)
+    - `systemd-homed` User Creation
+    - Desktop Environment & Utilities
+    - AUR Helper (`paru`)
+    - Secure Boot Signing (`sbctl`)
+    - TPM 2.0 Enrollment (`systemd-cryptenroll`)
 
 ---
 
