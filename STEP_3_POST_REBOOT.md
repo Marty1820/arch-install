@@ -27,13 +27,13 @@ btop
 btrfs-progs
 cabextract
 chromium
-cosmic-files
 dosfstools
 dpkg
 efivar
 exfat-utils
 eza
 fastfetch
+ffmpegthumbnailer
 fprintd
 framework-system
 fuzzel
@@ -72,9 +72,11 @@ starship
 stow
 sudo
 syncthing
+thunar
 tldr
 tlp
 tlp-pd
+tumbler
 udisks2
 ufw
 unace
@@ -137,11 +139,11 @@ sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 ### D. Reboot & Enable Secure Boot
 
- 1. Reboot your system.
- 2. Enter UEFI/BIOS settings.
- 3. Change **Secure Boot** from "Setup Mode" to "**Enabled**" (or "User Mode").
- 4. Save and reboot.
- 5. Verify
+1.  Reboot your system.
+2.  Enter UEFI/BIOS settings.
+3.  Change **Secure Boot** from "Setup Mode" to "**Enabled**" (or "User Mode").
+4.  Save and reboot.
+5.  Verify
     ```bash
     bootctl status
     ```
@@ -151,18 +153,19 @@ sbctl sign -s /boot/EFI/BOOT/BOOTX64.EFI
 
 Now that Secure Boot is active, we can bind the LUKS key to the TPM.
 
- 1. **Bind TPM**: (Change the drive to your encrypted partition)
+1.  **Bind TPM**: (Change the drive to your encrypted partition)
+
     ```bash
     systemd-cryptenroll /dev/nvme0n1p2 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+2+4+7:sha256
     ```
-    * If the command fails, run it without `--wipe-slot=tpm2`
-    Note: PCR measures
-    - 0: UEFI firmware Code and Settings
-    - 2: UEFI GPT Partition table
-    - 4: Bootloader & Boot config
-    - 7: Secure Boot state
+    - If the command fails, run it without `--wipe-slot=tpm2`
+      Note: PCR measures
+    * 0: UEFI firmware Code and Settings
+    * 2: UEFI GPT Partition table
+    * 4: Bootloader & Boot config
+    * 7: Secure Boot state
 
- 2. **Final Reboot**:
+2.  **Final Reboot**:
     ```bash
     reboot
     ```

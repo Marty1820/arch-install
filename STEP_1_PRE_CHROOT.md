@@ -34,14 +34,14 @@ Note the device name (e.g., `nvme0n1` or `sda`). Do not include the partition nu
 
 We will create three partitions:
 
-| Partition | Size | Type | Purpose |
-|:---|---|---|---:|
-| 1 | 1GiB | EF00 (EFI) | Bootloader & UKIs |
-| 3 | Rest | 8304 (Linux root(x86-64)) | Root filesystem |
+| Partition | Size | Type                      |           Purpose |
+| :-------- | ---- | ------------------------- | ----------------: |
+| 1         | 1GiB | EF00 (EFI)                | Bootloader & UKIs |
+| 3         | Rest | 8304 (Linux root(x86-64)) |   Root filesystem |
 
 ### Execute Partitioning
 
-Run gdisk /dev/*block-device* to open gdisk and prepare to partition the drives. Type the following keystrokes:
+Run gdisk /dev/_block-device_ to open gdisk and prepare to partition the drives. Type the following keystrokes:
 
 ```bash
 n
@@ -71,7 +71,7 @@ cryptsetup luksFormat --type luks2 "/dev/$ROOT_PART"
 cryptsetup open "/dev/$ROOT_PART" root
 ```
 
-* Remember your LUKS passphrase! You'll need it at boot.
+- Remember your LUKS passphrase! You'll need it at boot.
 
 ---
 

@@ -3,6 +3,7 @@
 Now that the base system is installed, we enter the new environment to configure the system identity, generate Unified Kernel Images (UKIs), create the user with an encrypted home directory, and set up the bootloader.
 
 > 💡 **Note**: Ensure you are inside the chroot environment.
+>
 > ```bash
 > arch-chroot /mnt
 > ```
@@ -12,6 +13,7 @@ Now that the base system is installed, we enter the new environment to configure
 ## 1. System Identity & Localization
 
 ### Timezone
+
 Set your timezone. Replace `America/Chicago` with your region.
 
 ```bash
@@ -20,6 +22,7 @@ hwclock --systohc
 ```
 
 ### Localization
+
 Enable and generate the locale.
 
 ```bash
@@ -32,6 +35,7 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
 ### Hostname
+
 Set your system hostname.
 
 ```bash
@@ -41,6 +45,7 @@ echo "HOSTNAME" > /etc/hostname
 ---
 
 ## 2. Network Configuration
+
 Enable Network Manager to manage connections automatically.
 
 ```bash
@@ -68,6 +73,7 @@ Type your password twice. We will lockout to root account later.
 UKIs bunble the kernel, initramfs, microcode, and kernel command line into a single `.efi` file.
 
 ### Configure mkinitcpio
+
 Update hooks to support UKI generation and encryption.
 
 ```bash
@@ -81,6 +87,7 @@ EOF
 ```
 
 ### Configure UKI Preset
+
 Tell `mkinitcpio` where to place the generated UKI.
 
 ```bash
@@ -92,6 +99,7 @@ EOF
 ```
 
 ### Configure Kernel Command Line
+
 Create a dedicated cmdline file for the UKI.
 
 ```bash
@@ -113,6 +121,7 @@ bootctl install
 ```
 
 ### Generate UKI
+
 Build the initramfs and the Unified Kernel Image.
 
 ```bash
